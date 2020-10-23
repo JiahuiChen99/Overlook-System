@@ -32,9 +32,22 @@ configDanny config;
 
 
 void signalhandler(int sigint){
-  if(sigint == SIGALRM){
-    //Comprovar la carpeta i mirar si tenim arxius de text
-  }
+
+    switch (sigint) {
+
+        case SIGALRM:
+            //Comprovar la carpeta i mirar si tenim arxius de text
+            printf("Holaaaaaa!\n");
+
+            break;
+        case SIGINT:
+            break;
+        default:
+            break;
+    }
+
+  //Reassignem el nostre handler al signal
+  signal(sigint, signalhandler);
 }
 
 /*
@@ -120,7 +133,14 @@ int main(int argc, char *argv[]) {
     printf("ipWendy: %s\n", config.ipWendy);
     printf("port Wendy: %d\n", config.portWendy);
 
+
+    //Reassingem interrupcions
     signal(SIGALRM, signalhandler);
+
+    while(1){
+        sleep(config.temps);
+        raise(SIGALRM);
+    }
 
     free (config.nom);
     free (config.carpeta);
