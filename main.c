@@ -88,7 +88,7 @@ configDanny llegirConfig(char *nomFitxer){
   //Llegim la carpeta on son els arxius
   config.carpeta =  LlegirCadena(fitxer);
   //Llegim el temps
-  read(fitxer,&(config).temps,sizeof(int));
+  config.temps = atoi(LlegirCadena(fitxer));
 
   //Llegim les dades de Jack
   config.ipJack =  LlegirCadena(fitxer);
