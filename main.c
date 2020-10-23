@@ -10,8 +10,8 @@
 #include <fcntl.h>
 
 //Strings necessaris.
-#define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT"
-#define ARGUMENT_ERROR "ERROR. NO S'HAN TROBAT SUFICIENTS ARGUMENTS DE PROGRAMA."
+#define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
+#define ARGUMENT_ERROR "ERROR. NO S'HAN TROBAT SUFICIENTS ARGUMENTS DE PROGRAMA.\n"
 #define ERROR_RETURN -1
 
 //Estructura que guardarà la informació de configuració de Danny
@@ -60,7 +60,6 @@ char * LlegirCadena(int fd){
       cadena[lletres-1] = buff;
     }
   }
-  //return(cadena);
 }
 
 
@@ -73,7 +72,7 @@ char * LlegirCadena(int fd){
 *Retorna: Struct amb la informació llegida.
 */
 configDanny llegirConfig(char *nomFitxer){
-  int fitxer=open(nomFitxer, O_RDONLY);
+  int fitxer = open(nomFitxer, O_RDONLY);
   configDanny config;
 
   //Comprovem que el fitxer existeixi
@@ -90,16 +89,14 @@ configDanny llegirConfig(char *nomFitxer){
   config.carpeta =  LlegirCadena(fitxer);
   //Llegim el temps
   read(fitxer,&(config).temps,sizeof(int));
+
   //Llegim les dades de Jack
   config.ipJack =  LlegirCadena(fitxer);
-  char * aux = LlegirCadena(fitxer);
-  config.portJack= atoi(aux);
-  free(aux);
+  config.portJack= atoi(LlegirCadena(fitxer));
+
   //Llegim les dades de Wendy
   config.ipWendy =  LlegirCadena(fitxer);
-  aux = LlegirCadena(fitxer);
-  config.portWendy = atoi(aux);
-  free(aux);
+  config.portWendy = atoi(LlegirCadena(fitxer));
 
   //Tanquem el File Descriptor
   close(fitxer);
