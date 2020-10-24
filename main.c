@@ -16,6 +16,7 @@
 
 //Variables globals
 configDanny config;
+int processID;
 
 void signalhandler(int sigint){
 
@@ -23,7 +24,7 @@ void signalhandler(int sigint){
 
         case SIGALRM:
             //Comprovar la carpeta i mirar si tenim arxius de text
-            fileDetection(&config);
+            fileDetection(&config, &processID);
 
             break;
         case SIGINT:
@@ -55,10 +56,11 @@ int main(int argc, char *argv[]) {
 
     write(1, START, sizeof(START));
 
-    config = llegirConfig(argv[1]);
+    config = llegirConfig(argv[1], &processID);
 
     //Reassingem interrupcions
     signal(SIGALRM, signalhandler);
+    signal(SIGINT, signalhandler);
 
     while(1){
         sleep(config.temps);

@@ -1,6 +1,6 @@
 #include "fileParser.h"
 
-int fileDetection(configDanny *config){
+int fileDetection(configDanny *config, int *processID){
     DIR *directori;
     struct dirent *directoryFile;
     char buff[50], buff2[50];
@@ -99,7 +99,6 @@ int fileDetection(configDanny *config){
 
                         free(txtFile.data);
                         free(txtFile.hora);
-
                     }else{
                         //TODO: JPG Parsing
                     }
@@ -146,7 +145,7 @@ char * llegirCadena(int fd){
 *
 *Retorna: Struct amb la informació llegida.
 */
-configDanny llegirConfig(char *nomFitxer){
+configDanny llegirConfig(char *nomFitxer, int *processID){
     int fitxer = open(nomFitxer, O_RDONLY);
     configDanny config;
 
@@ -175,6 +174,8 @@ configDanny llegirConfig(char *nomFitxer){
 
     //Tanquem el File Descriptor
     close(fitxer);
+
+    *processID = 1;
 
     return(config);
 }
