@@ -27,6 +27,14 @@ void signalhandler(int sigint){
 
             break;
         case SIGINT:
+            free (config.nom);
+            free (config.carpeta);
+            free (config.ipJack);
+            free (config.ipWendy);
+
+
+            write(1, DISCONNECTION, sizeof(DISCONNECTION));
+            exit(0);
             break;
         default:
             break;
@@ -57,9 +65,5 @@ int main(int argc, char *argv[]) {
         raise(SIGALRM);
     }
 
-    free (config.nom);
-    free (config.carpeta);
-    free (config.ipJack);
-    free (config.ipWendy);
     return 0;
 }

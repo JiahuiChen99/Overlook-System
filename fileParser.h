@@ -15,6 +15,7 @@
 
 //Arxius de dades Danny: .txt & .jpg
 #define FILES_FOUND "%d files found\n"
+#define DATA_FILE_NOT_FOUND "%s file not found\n"
 #define NO_FILES_FOUND "No files available\n"
 #define NO_SUCH_DIRECTORY "No such directory\n"
 

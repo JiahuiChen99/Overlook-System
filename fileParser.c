@@ -18,6 +18,7 @@ int fileDetection(configDanny *config){
     buff[0] = '.';
     buff[1] = '.';
     strcat(buff, config->carpeta);
+    //TODO: Fins aquí
 
     /*char cwd[100];
     printf("Current Directory: %s\n", getcwd(cwd, sizeof(cwd)));*/
@@ -60,8 +61,7 @@ int fileDetection(configDanny *config){
                         //Comprovem que el fitxer existeixi
                         if(fdFitxer < 0){
                             memset(buff2, '\0', sizeof(buff2));
-                            //TODO: CHANGE ERROR
-                            bytes = sprintf(buff2, FILE_ERROR, "Danny");
+                            bytes = sprintf(buff2, DATA_FILE_NOT_FOUND, directoryFile->d_name);
                             write(1, buff2, bytes);
                             exit(ERROR_RETURN);
                         }
@@ -92,8 +92,14 @@ int fileDetection(configDanny *config){
 
 
 
-                        //TODO: Alliberar memòria i eliminar fitxer
+                        //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);
+
+                        remove(directoryFile->d_name);
+
+                        free(txtFile.data);
+                        free(txtFile.hora);
+
                     }else{
                         //TODO: JPG Parsing
                     }
