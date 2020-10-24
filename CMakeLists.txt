@@ -3,4 +3,4 @@ project(Overlook_System C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(Overlook_System main.c)
+add_executable(Overlook_System main.c fileParser.c fileParser.h)
