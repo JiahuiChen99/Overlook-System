@@ -1,23 +1,35 @@
 #include "fileParser.h"
 
-int fileDetection(configDanny *config, int *processID){
+int fileDetection(configDanny *config){
     DIR *directori;
     struct dirent *directoryFile;
-    char buff[50], buff2[50];
+    char buff2[500];
+    char * buff;
     int totalFilesMatching = 0;
     txtFile txtFile;
 
     memset(buff2, '\0', sizeof(buff2));
 
     int bytes =sprintf(buff2, "$%s:\n", config->nom);
+    //printf("------------------ %s\n", buff2);
     write(1, buff2, bytes);
 
     //Obertura d'escriptori
     //TODO: A matagalls no cal afegir ..
-    memset(buff, '\0', sizeof(buff));
+    buff = (char *) malloc(sizeof(char));
     buff[0] = '.';
-    buff[1] = '.';
-    strcat(buff, config->carpeta);
+    for(int i = 0 ; i < (int)strlen(config->carpeta);i++){
+        buff = (char *) realloc(buff,sizeof(char)*(i+2));
+        buff[i+1] = config->carpeta[i];
+    }
+    buff = (char *) realloc(buff, sizeof(char)*( strlen(buff) + 2));
+    buff[strlen(buff)-1] = '/';
+    buff[strlen(buff)] = '\0';
+
+    //memset(buff, '\0', sizeof(buff));
+    //buff[1] = '.';
+    //strcat(buff, config->carpeta);
+
     //TODO: Fins aquí
 
     /*char cwd[100];
@@ -26,6 +38,8 @@ int fileDetection(configDanny *config, int *processID){
     write(1, "Testing...\n", sizeof("Testing...\n"));
 
     directori = opendir(buff);
+
+    //write(1,  config->carpeta, strlen(config->carpeta) );
 
     if( directori == NULL){
         write(1, NO_SUCH_DIRECTORY, sizeof(NO_SUCH_DIRECTORY));
@@ -42,6 +56,10 @@ int fileDetection(configDanny *config, int *processID){
                     totalFilesMatching++;
                 }
             }
+            if(totalFilesMatching == 0){
+                write(1, NO_FILES_FOUND, sizeof(NO_FILES_FOUND));
+                return 0;
+            }
             bytes = sprintf(buff2, FILES_FOUND, totalFilesMatching);
             write(1, buff2, bytes);
 
@@ -56,7 +74,11 @@ int fileDetection(configDanny *config, int *processID){
 
                     //Parseig fitxer de dades txt
                     if(strstr(directoryFile->d_name, ".txt") != NULL){
-                        int fdFitxer = open(directoryFile->d_name, O_RDONLY);
+                        char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name))));
+                        strcpy(fitxerActual, buff);
+                        strcat(fitxerActual,directoryFile->d_name);
+
+                        int fdFitxer = open(fitxerActual, O_RDONLY);
 
                         //Comprovem que el fitxer existeixi
                         if(fdFitxer < 0){
@@ -95,7 +117,8 @@ int fileDetection(configDanny *config, int *processID){
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);
 
-                        remove(directoryFile->d_name);
+                        printf("ELIMINANT FITXER: %s\n", fitxerActual);
+                        remove(fitxerActual);
 
                         free(txtFile.data);
                         free(txtFile.hora);
@@ -107,6 +130,7 @@ int fileDetection(configDanny *config, int *processID){
             }
         }
     }
+    free(buff);
     return 0;
 }
 
@@ -127,6 +151,9 @@ char * llegirCadena(int fd){
     while (1){
         comprovacio = read(fd, &buff, sizeof(char));
         if((buff == '\n')||(comprovacio <= 0)){
+            //lletres++;
+            //cadena = (char *) realloc(cadena, sizeof(char)*lletres);
+            //cadena[lletres-1] = '\0';
             return(cadena);
         }else{
             lletres++;
@@ -145,7 +172,7 @@ char * llegirCadena(int fd){
 *
 *Retorna: Struct amb la informació llegida.
 */
-configDanny llegirConfig(char *nomFitxer, int *processID){
+configDanny llegirConfig(char *nomFitxer){
     int fitxer = open(nomFitxer, O_RDONLY);
     configDanny config;
 
@@ -175,7 +202,6 @@ configDanny llegirConfig(char *nomFitxer, int *processID){
     //Tanquem el File Descriptor
     close(fitxer);
 
-    *processID = 1;
 
     return(config);
 }

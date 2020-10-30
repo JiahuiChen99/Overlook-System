@@ -39,8 +39,8 @@ typedef struct configDanny{
     int portWendy;
 }configDanny;
 
-int fileDetection(configDanny *config, int *processID);
+int fileDetection(configDanny *config);
 char * llegirCadena(int fd);
-configDanny llegirConfig(char *nomFitxer,int *processID);
+configDanny llegirConfig(char *nomFitxer);
 
 #endif //OVERLOOK_SYSTEM_FILEPARSER_H

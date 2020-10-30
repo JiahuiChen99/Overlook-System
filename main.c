@@ -16,7 +16,6 @@
 
 //Variables globals
 configDanny config;
-int processID;
 
 void signalhandler(int sigint){
 
@@ -24,7 +23,7 @@ void signalhandler(int sigint){
 
         case SIGALRM:
             //Comprovar la carpeta i mirar si tenim arxius de text
-            fileDetection(&config, &processID);
+            fileDetection(&config);
 
             break;
         case SIGINT:
@@ -41,22 +40,22 @@ void signalhandler(int sigint){
             break;
     }
 
-  //Reassignem el nostre handler al signal
-  signal(sigint, signalhandler);
+    //Reassignem el nostre handler al signal
+    signal(sigint, signalhandler);
 }
 
 int main(int argc, char *argv[]) {
 
     if(argc < 2){
-      char buff[100];
-      int bytes = sprintf(buff, ARGUMENT_ERROR);
-      write(1, buff, bytes);
-      exit(ERROR_RETURN);
+        char buff[100];
+        int bytes = sprintf(buff, ARGUMENT_ERROR);
+        write(1, buff, bytes);
+        exit(ERROR_RETURN);
     }
 
     write(1, START, sizeof(START));
 
-    config = llegirConfig(argv[1], &processID);
+    config = llegirConfig(argv[1]);
 
     //Reassingem interrupcions
     signal(SIGALRM, signalhandler);
