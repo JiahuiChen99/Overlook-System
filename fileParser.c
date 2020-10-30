@@ -7,6 +7,7 @@ int fileDetection(configDanny *config){
     char * buff;
     int totalFilesMatching = 0;
     txtFile txtFile;
+    int index;
     memset(buff2, '\0', sizeof(buff2));
 
     int bytes =sprintf(buff2, "$%s:\n", config->nom);
@@ -21,8 +22,10 @@ int fileDetection(configDanny *config){
         buff[i+1] = config->carpeta[i];
     }
     buff = (char *) realloc(buff, sizeof(char)*( strlen(buff) + 2));
-    buff[strlen(buff)-1] = '/';
-    buff[strlen(buff)] = '\0';
+    index=strlen(buff)-1;
+    buff[index] = '/';
+    index=strlen(buff);
+    buff[index] = '\0';
 
 
     write(1, "Testing...\n", sizeof("Testing...\n"));
@@ -82,7 +85,6 @@ int fileDetection(configDanny *config){
                     //Parseig fitxer de dades txt
                     if(strstr(directoryFile->d_name, ".txt") != NULL){
                         char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name))));
-                        //write(1, buff, strlen(buff));
                         strcpy(fitxerActual, buff);
                         strcat(fitxerActual,directoryFile->d_name);
 
@@ -96,12 +98,25 @@ int fileDetection(configDanny *config){
                             exit(ERROR_RETURN);
                         }
 
+                        char * aux;
                         txtFile.data = llegirCadena(fdFitxer);
                         txtFile.hora = llegirCadena(fdFitxer);
-                        txtFile.temperatura = (float) atof(llegirCadena(fdFitxer));
-                        txtFile.humitat = atoi(llegirCadena(fdFitxer));
-                        txtFile.pressio_atmosferica = (float) atof(llegirCadena(fdFitxer));
-                        txtFile.precipitacio = (float) atof(llegirCadena(fdFitxer));
+
+                        aux = llegirCadena(fdFitxer);
+                        txtFile.temperatura = (float) atof(aux);
+                        free(aux);
+
+                        aux = llegirCadena(fdFitxer);
+                        txtFile.humitat = atoi(aux);
+                        free(aux);
+
+                        aux = llegirCadena(fdFitxer);
+                        txtFile.pressio_atmosferica = (float) atof(aux);
+                        free(aux);
+
+                        aux = llegirCadena(fdFitxer);
+                        txtFile.precipitacio = (float) atof(aux);
+                        free(aux);
 
                         write(1, txtFile.data, strlen(txtFile.data));
                         write(1, "\n", 1);
@@ -138,6 +153,9 @@ int fileDetection(configDanny *config){
             }
         }
     }
+    //free(directori->d_name);
+    free(directoryFile);
+    free(directori);
     free(buff);
     return 0;
 }
@@ -191,19 +209,30 @@ configDanny llegirConfig(char *nomFitxer){
 
     //Llegim el nom de la estacio
     config.nom = llegirCadena(fitxer);
-    config.nom[strlen(config.nom)-1]='\0';
+    int index = strlen(config.nom)-1;
+    config.nom[index]='\0';
     //Llegim la carpeta on son els arxius
     config.carpeta =  llegirCadena(fitxer);
     //Llegim el temps
-    config.temps = atoi(llegirCadena(fitxer));
+    char * aux;
+
+    aux = llegirCadena(fitxer);
+    config.temps = atoi(aux);
+    free(aux);
 
     //Llegim les dades de Jack
     config.ipJack =  llegirCadena(fitxer);
-    config.portJack= atoi(llegirCadena(fitxer));
+
+    aux = llegirCadena(fitxer);
+    config.portJack= atoi(aux);
+    free(aux);
 
     //Llegim les dades de Wendy
     config.ipWendy =  llegirCadena(fitxer);
-    config.portWendy = atoi(llegirCadena(fitxer));
+
+    aux = llegirCadena(fitxer);
+    config.portWendy = atoi(aux);
+    free(aux);
 
     //Tanquem el File Descriptor
     close(fitxer);
