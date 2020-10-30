@@ -7,15 +7,13 @@ int fileDetection(configDanny *config){
     char * buff;
     int totalFilesMatching = 0;
     txtFile txtFile;
-
     memset(buff2, '\0', sizeof(buff2));
 
     int bytes =sprintf(buff2, "$%s:\n", config->nom);
-    //printf("------------------ %s\n", buff2);
     write(1, buff2, bytes);
 
+
     //Obertura d'escriptori
-    //TODO: A matagalls no cal afegir ..
     buff = (char *) malloc(sizeof(char));
     buff[0] = '.';
     for(int i = 0 ; i < (int)strlen(config->carpeta);i++){
@@ -26,20 +24,11 @@ int fileDetection(configDanny *config){
     buff[strlen(buff)-1] = '/';
     buff[strlen(buff)] = '\0';
 
-    //memset(buff, '\0', sizeof(buff));
-    //buff[1] = '.';
-    //strcat(buff, config->carpeta);
-
-    //TODO: Fins aquí
-
-    /*char cwd[100];
-    printf("Current Directory: %s\n", getcwd(cwd, sizeof(cwd)));*/
 
     write(1, "Testing...\n", sizeof("Testing...\n"));
 
     directori = opendir(buff);
 
-    //write(1,  config->carpeta, strlen(config->carpeta) );
 
     if( directori == NULL){
         write(1, NO_SUCH_DIRECTORY, sizeof(NO_SUCH_DIRECTORY));
@@ -151,9 +140,6 @@ char * llegirCadena(int fd){
     while (1){
         comprovacio = read(fd, &buff, sizeof(char));
         if((buff == '\n')||(comprovacio <= 0)){
-            //lletres++;
-            //cadena = (char *) realloc(cadena, sizeof(char)*lletres);
-            //cadena[lletres-1] = '\0';
             return(cadena);
         }else{
             lletres++;
@@ -186,6 +172,7 @@ configDanny llegirConfig(char *nomFitxer){
 
     //Llegim el nom de la estacio
     config.nom = llegirCadena(fitxer);
+    config.nom[strlen(config.nom)-1]='\0';
     //Llegim la carpeta on son els arxius
     config.carpeta =  llegirCadena(fitxer);
     //Llegim el temps
