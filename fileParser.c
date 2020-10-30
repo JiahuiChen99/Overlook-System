@@ -54,16 +54,35 @@ int fileDetection(configDanny *config){
 
             directori = opendir(buff);
 
+            //TODO: Mostrar el nom de tots els arxius
+
+            char *dirname = (char *) malloc(strlen(buff));
+            strcpy(dirname, buff);
+            struct dirent **arxius;
+            int q_arxius = scandir(dirname, &arxius, NULL, NULL);
+            for (int i = 0; i < q_arxius; i++) {
+              if(strstr(arxius[i]->d_name, ".txt") != NULL ||
+                 strstr(arxius[i]->d_name, ".jpg") != NULL){
+                write(1, arxius[i]->d_name, strlen(arxius[i]->d_name));
+                write(1, "\n", 1);
+              }
+              free(arxius[i]);
+            }
+            free(arxius);
+            free(dirname);
+
             while ((directoryFile = readdir(directori)) != NULL){
                 //regex
                 if(strstr(directoryFile->d_name, ".txt") != NULL ||
                    strstr(directoryFile->d_name, ".jpg") != NULL){
-                    write(1, directoryFile->d_name, sizeof(directoryFile->d_name));
+                    write(1, "\n", 1);
+                    write(1, directoryFile->d_name, strlen(directoryFile->d_name));
                     write(1, "\n", 1);
 
                     //Parseig fitxer de dades txt
                     if(strstr(directoryFile->d_name, ".txt") != NULL){
                         char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name))));
+                        //write(1, buff, strlen(buff));
                         strcpy(fitxerActual, buff);
                         strcat(fitxerActual,directoryFile->d_name);
 
