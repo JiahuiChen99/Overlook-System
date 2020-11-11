@@ -55,6 +55,14 @@ int main(int argc, char *argv[]) {
 
     write(1, START, sizeof(START));
 
+    config.nom = NULL;
+    config.carpeta = NULL;
+    config.temps = 0;
+    config.ipJack = NULL;
+    config.portJack = 0;
+    config.ipWendy = NULL;
+    config.portWendy = 0;
+
     config = llegirConfig(argv[1]);
 
     //Reassingem interrupcions

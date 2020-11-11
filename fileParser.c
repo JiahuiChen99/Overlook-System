@@ -4,28 +4,28 @@ int fileDetection(configDanny *config){
     DIR *directori;
     struct dirent *directoryFile;
     char buff2[500];
-    char * buff;
+    char * buff = NULL;
     int totalFilesMatching = 0;
     txtFile txtFile;
-    int index;
     memset(buff2, '\0', sizeof(buff2));
 
     int bytes =sprintf(buff2, "$%s:\n", config->nom);
+    write(1, "\n", 1);
     write(1, buff2, bytes);
 
 
     //Obertura d'escriptori
-    buff = (char *) malloc(sizeof(char));
+    /**
+    * buff guarda la direcció de la carpeta de dades que ha de llegir Danny
+    * Aquest bloc de sota afegim . + /carpeta + / + '\0'
+    **/
+    buff = (char *) malloc(sizeof(char)* (1 + (int)strlen(config->carpeta) + 2));
+
+    memset(buff, '\0', 1 + (int)strlen(config->carpeta) + 2);
     buff[0] = '.';
-    for(int i = 0 ; i < (int)strlen(config->carpeta);i++){
-        buff = (char *) realloc(buff,sizeof(char)*(i+2));
-        buff[i+1] = config->carpeta[i];
-    }
-    buff = (char *) realloc(buff, sizeof(char)*( strlen(buff) + 2));
-    index=strlen(buff)-1;
-    buff[index] = '/';
-    index=strlen(buff);
-    buff[index] = '\0';
+    strcat(buff, config->carpeta);
+    buff[strlen(buff)] = '/';
+    buff[strlen(buff)] = '\0';
 
 
     write(1, "Testing...\n", sizeof("Testing...\n"));
@@ -57,19 +57,18 @@ int fileDetection(configDanny *config){
 
             directori = opendir(buff);
 
-            //TODO: Mostrar el nom de tots els arxius
-
-            char *dirname = (char *) malloc(strlen(buff));
+            //Mostrar el nom de tots els arxius
+            char *dirname = (char *) malloc(sizeof(char)* ( strlen(buff) + 1));
             strcpy(dirname, buff);
             struct dirent **arxius;
             int q_arxius = scandir(dirname, &arxius, NULL, NULL);
             for (int i = 0; i < q_arxius; i++) {
-              if(strstr(arxius[i]->d_name, ".txt") != NULL ||
-                 strstr(arxius[i]->d_name, ".jpg") != NULL){
-                write(1, arxius[i]->d_name, strlen(arxius[i]->d_name));
-                write(1, "\n", 1);
-              }
-              free(arxius[i]);
+                if(strstr(arxius[i]->d_name, ".txt") != NULL ||
+                   strstr(arxius[i]->d_name, ".jpg") != NULL){
+                    write(1, arxius[i]->d_name, strlen(arxius[i]->d_name));
+                    write(1, "\n", 1);
+                }
+                free(arxius[i]);
             }
             free(arxius);
             free(dirname);
@@ -84,7 +83,7 @@ int fileDetection(configDanny *config){
 
                     //Parseig fitxer de dades txt
                     if(strstr(directoryFile->d_name, ".txt") != NULL){
-                        char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name))));
+                        char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name) + 1)));
                         strcpy(fitxerActual, buff);
                         strcat(fitxerActual,directoryFile->d_name);
 
@@ -140,7 +139,6 @@ int fileDetection(configDanny *config){
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);
 
-                        printf("ELIMINANT FITXER: %s\n", fitxerActual);
                         remove(fitxerActual);
 
                         free(txtFile.data);
@@ -153,7 +151,6 @@ int fileDetection(configDanny *config){
             }
         }
     }
-    //free(directori->d_name);
     free(directoryFile);
     free(directori);
     free(buff);
@@ -177,6 +174,8 @@ char * llegirCadena(int fd){
     while (1){
         comprovacio = read(fd, &buff, sizeof(char));
         if((buff == '\n')||(comprovacio <= 0)){
+            cadena = (char *) realloc(cadena, sizeof(char)*lletres);
+            cadena[lletres-1] = '\0';
             return(cadena);
         }else{
             lletres++;
@@ -209,8 +208,7 @@ configDanny llegirConfig(char *nomFitxer){
 
     //Llegim el nom de la estacio
     config.nom = llegirCadena(fitxer);
-    int index = strlen(config.nom)-1;
-    config.nom[index]='\0';
+
     //Llegim la carpeta on son els arxius
     config.carpeta =  llegirCadena(fitxer);
     //Llegim el temps
@@ -218,14 +216,14 @@ configDanny llegirConfig(char *nomFitxer){
 
     aux = llegirCadena(fitxer);
     config.temps = atoi(aux);
-    free(aux);
+    //free(aux);
 
     //Llegim les dades de Jack
     config.ipJack =  llegirCadena(fitxer);
 
     aux = llegirCadena(fitxer);
     config.portJack= atoi(aux);
-    free(aux);
+    //free(aux);
 
     //Llegim les dades de Wendy
     config.ipWendy =  llegirCadena(fitxer);
