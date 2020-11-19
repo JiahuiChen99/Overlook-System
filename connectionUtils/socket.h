@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include "fileParser.h"
 
 #define IP_ERROR "%s no es una adreça IP vàlida\n"
 #define BIND_ERROR "Error en fer el Bind!\n"
