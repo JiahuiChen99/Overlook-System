@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     config.ipWendy = NULL;
     config.portWendy = 0;
 
-    config = llegirConfig(argv[1]);
+    config = llegirConfig(argv[1], "Danny");
 
     //Reassingem interrupcions
     signal(SIGALRM, signalhandler);

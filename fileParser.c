@@ -194,7 +194,7 @@ char * llegirCadena(int fd){
 *
 *Retorna: Struct amb la informació llegida.
 */
-configDanny llegirConfig(char *nomFitxer){
+configDanny llegirConfig(char *nomFitxer, char *process){
     int fitxer = open(nomFitxer, O_RDONLY);
     configDanny config;
 
@@ -209,14 +209,17 @@ configDanny llegirConfig(char *nomFitxer){
     //Llegim el nom de la estacio
     config.nom = llegirCadena(fitxer);
 
-    //Llegim la carpeta on son els arxius
-    config.carpeta =  llegirCadena(fitxer);
-    //Llegim el temps
-    char * aux;
+    if(strcmp("Danny", process)==0){
+      //Llegim la carpeta on son els arxius
+      config.carpeta =  llegirCadena(fitxer);
+      //Llegim el temps
+      char * aux;
+      aux = llegirCadena(fitxer);
+      config.temps = atoi(aux);
+      //free(aux);
+    }
 
-    aux = llegirCadena(fitxer);
-    config.temps = atoi(aux);
-    //free(aux);
+
 
     //Llegim les dades de Jack
     config.ipJack =  llegirCadena(fitxer);
@@ -225,13 +228,15 @@ configDanny llegirConfig(char *nomFitxer){
     config.portJack= atoi(aux);
     //free(aux);
 
+    if(strcmp("Danny", process)==0){
     //Llegim les dades de Wendy
     config.ipWendy =  llegirCadena(fitxer);
 
     aux = llegirCadena(fitxer);
     config.portWendy = atoi(aux);
     free(aux);
-
+    }
+    
     //Tanquem el File Descriptor
     close(fitxer);
 

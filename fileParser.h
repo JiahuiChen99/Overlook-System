@@ -40,6 +40,14 @@ typedef struct configDanny{
     int portWendy;
 }configDanny;
 
+
+//Estructura que guardarà la informació de configuració de Jack
+typedef struct configJack{
+    char * nom;
+    char * ipJack;
+    int portJack;
+}configJack;
+
 int fileDetection(configDanny *config);
 char * llegirCadena(int fd);
 configDanny llegirConfig(char *nomFitxer);
