@@ -16,3 +16,4 @@
 *Returns: File Descriptor del socket
 */
 int iniciarServidor(char *ip, int port);
+int iniciarclient(char *ip, int port);
