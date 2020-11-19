@@ -70,8 +70,9 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, signalhandler);
 
     while(1){
-        sleep(config.temps);
-        raise(SIGALRM);
+        /*sleep(config.temps);
+        raise(SIGALRM);*/
+        alarm(config.temps);
     }
 
     return 0;
