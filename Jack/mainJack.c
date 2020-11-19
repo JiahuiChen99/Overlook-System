@@ -57,7 +57,9 @@ int main(int argc, char *argv[]) {
       break;
       case 0:
         //fill
-
+        //Començar a mirar qué ens envien i printar.
+        gestionarClient(socketsClients[socketCounter]);
+        return 0;
       break;
       default:
         //Pare

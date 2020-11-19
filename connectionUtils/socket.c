@@ -57,3 +57,11 @@ int iniciarclient(char *ip, int port){
 
   return socketFD;
 }
+
+int gestionarClient(int fd){
+  int finish;
+  do{
+    finish = llegirDadesClient(fd);
+  }while(finish < 0);
+  return 0;
+}

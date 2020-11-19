@@ -48,6 +48,7 @@ typedef struct configJack{
     int portJack;
 }configJack;
 
+int llegirDadesClient(int fd);
 int fileDetection(configDanny *config);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);

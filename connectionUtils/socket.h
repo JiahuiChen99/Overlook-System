@@ -17,3 +17,4 @@
 */
 int iniciarServidor(char *ip, int port);
 int iniciarclient(char *ip, int port);
+int gestionarClient(int fd);
