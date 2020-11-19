@@ -48,7 +48,7 @@ int llegirDadesClient(int fd){
   return 0;
 }
 
-int fileDetection(configDanny *config){
+int fileDetection(configDanny *config, int socket){
     DIR *directori;
     struct dirent *directoryFile;
     char buff2[500];
@@ -89,6 +89,7 @@ int fileDetection(configDanny *config){
             write(1, NO_FILES_FOUND, sizeof(NO_FILES_FOUND));
             return 0;
         }else{
+
             while ((directoryFile = readdir(directori)) != NULL){
                 //regex
                 if(strstr(directoryFile->d_name, ".txt") != NULL ||
@@ -145,6 +146,7 @@ int fileDetection(configDanny *config){
                             exit(ERROR_RETURN);
                         }
 
+
                         char * aux;
                         txtFile.data = llegirCadena(fdFitxer);
                         txtFile.hora = llegirCadena(fdFitxer);
@@ -182,7 +184,8 @@ int fileDetection(configDanny *config){
                         write(1, buff2, bytes);
                         write(1, "\n", 1);
 
-
+                        //TODO: enviar nom estació
+                        //TODO: enviar tota la info
 
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);

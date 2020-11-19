@@ -16,6 +16,7 @@
 
 //Variables globals
 configDanny config;
+int fdsocket;
 
 void signalhandler(int sigint){
 
@@ -23,7 +24,7 @@ void signalhandler(int sigint){
 
         case SIGALRM:
             //Comprovar la carpeta i mirar si tenim arxius de text
-            fileDetection(&config);
+            fileDetection(&config, fdsocket);
 
             break;
         case SIGINT:
@@ -69,6 +70,11 @@ int main(int argc, char *argv[]) {
     signal(SIGALRM, signalhandler);
     signal(SIGINT, signalhandler);
 
+    //Iniciem la conexió amb el servidor Jack
+    fdsocket = iniciarclient(config.ipJack, config.portJack);
+    if(fdsocket < -1){
+      //Display error i sortir
+    }
     while(1){
         sleep(config.temps);
         raise(SIGALRM);
