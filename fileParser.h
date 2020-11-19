@@ -50,6 +50,6 @@ typedef struct configJack{
 
 int fileDetection(configDanny *config);
 char * llegirCadena(int fd);
-configDanny llegirConfig(char *nomFitxer);
+void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);
 
 #endif //OVERLOOK_SYSTEM_FILEPARSER_H

@@ -194,9 +194,9 @@ char * llegirCadena(int fd){
 *
 *Retorna: Struct amb la informació llegida.
 */
-configDanny llegirConfig(char *nomFitxer, char *process){
+void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack){
     int fitxer = open(nomFitxer, O_RDONLY);
-    configDanny config;
+    char * aux;
 
     //Comprovem que el fitxer existeixi
     if(fitxer < 0){
@@ -206,40 +206,43 @@ configDanny llegirConfig(char *nomFitxer, char *process){
         exit(ERROR_RETURN);
     }
 
-    //Llegim el nom de la estacio
-    config.nom = llegirCadena(fitxer);
 
     if(strcmp("Danny", process)==0){
-      //Llegim la carpeta on son els arxius
-      config.carpeta =  llegirCadena(fitxer);
-      //Llegim el temps
-      char * aux;
-      aux = llegirCadena(fitxer);
-      config.temps = atoi(aux);
-      //free(aux);
+        //Llegim el nom de la estació
+        configDanny->nom = llegirCadena(fitxer);
+        //Llegim la carpeta on son els arxius
+        configDanny->carpeta =  llegirCadena(fitxer);
+        //Llegim el temps
+        aux = llegirCadena(fitxer);
+        configDanny->temps = atoi(aux);
+    }
+
+    /** Depenent de "a qui" li estiguem llegint la config ho guardem a configDanny o configJack **/
+    if(strcmp("Danny", process)==0){
+        configDanny->ipJack =  llegirCadena(fitxer);
+
+        aux = llegirCadena(fitxer);
+        configDanny->portJack= atoi(aux);
+    }else{
+        configJack->ipJack =  llegirCadena(fitxer);
+
+        aux = llegirCadena(fitxer);
+        configJack->portJack= atoi(aux);
     }
 
 
 
-    //Llegim les dades de Jack
-    config.ipJack =  llegirCadena(fitxer);
-
-    aux = llegirCadena(fitxer);
-    config.portJack= atoi(aux);
-    //free(aux);
-
     if(strcmp("Danny", process)==0){
-    //Llegim les dades de Wendy
-    config.ipWendy =  llegirCadena(fitxer);
+        //Llegim les dades de Wendy
+        configDanny->ipWendy =  llegirCadena(fitxer);
 
-    aux = llegirCadena(fitxer);
-    config.portWendy = atoi(aux);
+        aux = llegirCadena(fitxer);
+        configDanny->portWendy = atoi(aux);
+    }
+
     free(aux);
-    }
-    
+
     //Tanquem el File Descriptor
     close(fitxer);
 
-
-    return(config);
 }

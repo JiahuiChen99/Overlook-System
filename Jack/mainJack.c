@@ -6,7 +6,7 @@
 #include "../fileParser.h"
 
 
-#define START  "Starting Danny...\n"
+#define START  "Starting Jack...\n"
 
 int main(int argc, char *argv[]) {
   configJack config;
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
   config.nom = NULL;
   config.ipJack = NULL;
   config.portJack = 0;
-  config = llegirConfig(argv[1], "Jack");
+  llegirConfig(argv[1], "Jack", NULL, &config);
 
   //Iniciem el servidor
   generalSocketFD = iniciarServidor(config.ipJack, config.portJack);
