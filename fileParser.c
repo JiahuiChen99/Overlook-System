@@ -55,6 +55,8 @@ int fileDetection(configDanny *config){
             bytes = sprintf(buff2, FILES_FOUND, totalFilesMatching);
             write(1, buff2, bytes);
 
+            closedir(directori);
+
             directori = opendir(buff);
 
             //Mostrar el nom de tots els arxius
@@ -152,7 +154,7 @@ int fileDetection(configDanny *config){
         }
     }
     free(directoryFile);
-    free(directori);
+    closedir(directori);
     free(buff);
     return 0;
 }
