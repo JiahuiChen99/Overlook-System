@@ -11,6 +11,8 @@
 int main(int argc, char *argv[]) {
   configJack config;
   int generalSocketFD;
+
+  //Fem una ràpida comprovació d'arguments
   if(argc < 2){
       char buff[100];
       int bytes = sprintf(buff, ARGUMENT_ERROR);
@@ -31,18 +33,37 @@ int main(int argc, char *argv[]) {
   generalSocketFD = iniciarServidor(config.ipJack, config.portJack);
 
   //Esperem a rebre
+  int socketsClients[3];
+  int forkIDsClients[3];
+  int socketCounter = 0;
+  int forkCounter = 0;
   while(1){
     //Fer un accept
     struct sockaddr_in cli_addr;
     socklen_t length = sizeof (s_addr);
 
-    int newsock = accept (sockfd, (void *) &cli_addr, &length);
+    socketsClients[socketCounter] = accept (sockfd, (void *) &cli_addr, &length);
     if (newsock < 0){
       bytes = sprintf(buff, ACCEPT_ERROR);
       write(1, buff, bytes);
       return -1;
     }
+    socketCounter = socketCounter == 2 ? 0 : socketCounter+1
     //Fork per tractar el socket
+    forkIDsClients[forkCounter] = fork();
+    switch (forkIDsClients[forkCounter]) {
+      case -1:
+        //Display error
+      break;
+      case 0:
+        //fill
+
+      break;
+      default:
+        //Pare
+        forkCounter = forkCounter == 2 ? 0 : forkCounter+1
+      break;
+    }
 
   }
   return 0;
