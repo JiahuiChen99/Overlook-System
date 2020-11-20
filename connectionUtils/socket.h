@@ -11,6 +11,8 @@
 #define LISTEN_ERROR "Error en fer el Listen!\n"
 #define ACCEPT_ERROR "Error en fer el Accept!\n"
 
+#define ERROR_DE_TRAMA "ERROR EN EL FORMAT DE LA TRAMA!\n"
+#define ERROR_DE_DADES "ERROR EN EL FORMAT DE LES DADES!\n"
 /* Lo ponemos en fileparser.h porque si no no compila
 typedef struct {
     char origen[14];
