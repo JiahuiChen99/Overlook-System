@@ -269,32 +269,32 @@ int fileDetection(configDanny *config, int socket){
                         // enviar nom estació
                         osPacket message;
                         strcpy(message.origen,config->nom);
-                        message.tipus = 'D'
+                        message.tipus = 'D';
                         //TODO: enviar tota la info
                         int index=0;
                         strcpy(message.dades,txtFile->data);
                         index += strlen(txtFile.data);
-                        message.dades[index]='#'
+                        message.dades[index]='#';
 
                         strcat(message.dades,txtFile->hora);
                         index += strlen(txtFile.data);
-                        message.dades[index]='#'
+                        message.dades[index]='#';
 
                         strcat(message.dades,ftoa(txtFile->temperatura));
                         index += strlen(ftoa(txtFile->temperatura));
-                        message.dades[index]='#'
+                        message.dades[index]='#';
 
                         strcat(message.dades,itoa(txtFile->humitat));
                         index += strlen(itoa(txtFile->temperatura));
-                        message.dades[index]='#'
+                        message.dades[index]='#';
 
                         strcat(message.dades,ftoa(txtFile->pressio_atmosferica));
                         index += strlen(ftoa(txtFile->pressio_atmosferica));
-                        message.dades[index]='#'
+                        message.dades[index]='#';
 
                         strcat(message.dades,ftoa(txtFile->precipitacio));
                         index += strlen(ftoa(txtFile->precipitacio));
-                        message.dades[index]='\0'
+                        message.dades[index]='\0';
 
                         write(fd, message, 115);
 
