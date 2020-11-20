@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
     fdsocket = iniciarclient(config.ipJack, config.portJack);
     if(fdsocket < -1){
       //Display error i sortir
+      return -1;
     }
     while(1){
         sleep(config.temps);
