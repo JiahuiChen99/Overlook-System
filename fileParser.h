@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+#include "connectionUtils/socket.h"
+
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
 #define ARGUMENT_ERROR "ERROR. NO S'HAN TROBAT SUFICIENTS ARGUMENTS DE PROGRAMA.\n"
@@ -19,6 +21,9 @@
 #define DATA_FILE_NOT_FOUND "%s file not found\n"
 #define NO_FILES_FOUND "No files available\n\n"
 #define NO_SUCH_DIRECTORY "No such directory\n"
+
+//Jack - Parseig de dades Danny
+#define ERROR_DADES_DANNY -1
 
 typedef struct {
     char * data;
@@ -48,6 +53,7 @@ typedef struct configJack{
     int portJack;
 }configJack;
 
+int parseigDadesDanny(osPacket dadesMeteorologiques);
 int llegirDadesClient(int fd);
 int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);

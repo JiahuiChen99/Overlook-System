@@ -1,11 +1,121 @@
 #include "fileParser.h"
 
-int llegirDadesClient(int fd){
-  //char *nom, *data, *hora, *aux;
-  char *aux;
-  float temp, pressio, precipitacio;
-  int humitat;
 
+int parseigDadesDanny(osPacket dadesMeteorologiques){
+    int i, j, hashtagCounter;
+    char *aux = NULL;
+    aux = (char *) malloc(sizeof(char) * 1);
+    i = j = 0;
+
+    while(i < 100){
+        while(dadesMeteorologiques.dades[i] != '#'){
+            aux[j] = dadesMeteorologiques.dades[i];
+            aux = (char *)realloc(aux, sizeof(char)* (j + 2));
+            i++;
+            j++;
+        }
+
+        switch (hashtagCounter) {
+            case 0:
+                //Comprovar data
+                if(strlen(aux) != 10){
+                    return ERROR_DADES_DANNY;
+                }
+                break;
+            case 1:
+                //Comprovar hora
+                if(strlen(aux) != 8){
+                    return ERROR_DADES_DANNY;
+                }
+                break;
+            case 2:
+                //Comprovar temperatura
+                if(strlen(aux) > 5){
+                    return ERROR_DADES_DANNY;
+                }
+                break;
+            case 3:
+                //Comprovar humitat
+                if(strlen(aux) > 3){
+                    return ERROR_DADES_DANNY;
+                }
+                break;
+            case 4:
+                //Comprovar pressió
+                if(strlen(aux) > 6){
+                    return ERROR_DADES_DANNY;
+                }
+                break;
+            case 5:
+                //Comprovar precipitació
+                if(strlen(aux) > 4){
+                    return ERROR_DADES_DANNY;
+                }
+                break;
+            default:
+                break;
+        }
+        hashtagCounter++;
+        i++;
+        j = 0;
+    }
+
+    return 0;
+}
+
+int llegirDadesClient(int socketFD){
+    char trama[sizeof(osPacket)], serial[115];
+    osPacket dadesMeteorologiques, tramaResposta;
+
+    int nBytes = read(socketFD, trama, sizeof(osPacket));
+
+    //Inicialització del serial
+    memset(serial, '\0', sizeof(serial));
+    //Inicialització de la trama
+    memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
+    tramaResposta.tipus = '\0';
+    memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
+
+    //Control dels bytes rebuts, si es perden bytes durant la comunicació error
+    if(nBytes != sizeof(osPacket) || trama[14] != 'D'){
+
+        //Popular la trama amb ERROR Trama
+        strcpy(tramaResposta.origen, "JACK");
+        tramaResposta.tipus = 'Z';
+        strcpy(tramaResposta.dades, "ERROR DE TRAMA");
+
+    }else{
+
+        /** Lectura de trama **/
+        //Lectura de l'origen
+        strncpy(dadesMeteorologiques.origen, trama, 4);
+        //Lectura tipus
+        dadesMeteorologiques.tipus = trama[14];
+        //Lectura de dades
+        strncpy(dadesMeteorologiques.dades, trama + 15, 100);
+
+        int dadesStatus = parseigDadesDanny(dadesMeteorologiques);
+
+        if(dadesStatus == ERROR_DADES_DANNY){
+            //Popular la trama amb KO
+            strcpy(tramaResposta.origen, "JACK");
+            tramaResposta.tipus = 'K';
+            strcpy(tramaResposta.dades, "DADES KO");
+        }else{
+            //Popular la trama amb OK
+            strcpy(tramaResposta.origen, "JACK");
+            tramaResposta.tipus = 'B';
+            strcpy(tramaResposta.dades, "DADES OK");
+        }
+    }
+
+    //Serialitzar
+    strcpy(serial, tramaResposta.origen);
+    serial[strlen(serial) + 1] =  tramaResposta.tipus;
+    strcat(serial, tramaResposta.dades);
+
+    //Enviar
+    write(socketFD, serial, sizeof(serial));
 
 
   return 0;
