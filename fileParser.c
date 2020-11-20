@@ -147,8 +147,47 @@ int fileDetection(configDanny *config, int socket){
                         write(1, buff2, bytes);
                         write(1, "\n", 1);
 
-                        //TODO: enviar nom estació
+                        /* Output a enviar:
+                        Igualada
+                        25/09/2020
+                        15:30:58
+                        24.5
+                        73
+                        1014.2
+                        2.5
+                        */
+                        // enviar nom estació
+                        osPacket message;
+                        strcpy(message.origen,config->nom);
+                        message.tipus = 'D'
                         //TODO: enviar tota la info
+                        int index=0;
+                        strcpy(message.dades,txtFile->data);
+                        index += strlen(txtFile.data);
+                        message.dades[index]='#'
+
+                        strcat(message.dades,txtFile->hora);
+                        index += strlen(txtFile.data);
+                        message.dades[index]='#'
+
+                        strcat(message.dades,ftoa(txtFile->temperatura));
+                        index += strlen(ftoa(txtFile->temperatura));
+                        message.dades[index]='#'
+
+                        strcat(message.dades,itoa(txtFile->humitat));
+                        index += strlen(itoa(txtFile->temperatura));
+                        message.dades[index]='#'
+
+                        strcat(message.dades,ftoa(txtFile->pressio_atmosferica));
+                        index += strlen(ftoa(txtFile->pressio_atmosferica));
+                        message.dades[index]='#'
+
+                        strcat(message.dades,ftoa(txtFile->precipitacio));
+                        index += strlen(ftoa(txtFile->precipitacio));
+                        message.dades[index]='\0'
+
+                        write(fd, message, 115);
+
 
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);
