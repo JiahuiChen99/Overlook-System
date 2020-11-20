@@ -64,11 +64,13 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
 }
 
 int llegirDadesClient(int socketFD){
+    //TODO: no entra aquí???
+    printf("Entro a llegir dades\n");
     char trama[sizeof(osPacket)], serial[115];
     osPacket dadesMeteorologiques, tramaResposta;
-
+    printf("ESPERANT DADA\n");
     int nBytes = read(socketFD, trama, sizeof(osPacket));
-
+    printf("DADA REBUDA\n");
     //Inicialització del serial
     memset(serial, '\0', sizeof(serial));
     //Inicialització de la trama
@@ -174,6 +176,37 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
   strcat(serial, message.dades);
 
   write(socketFD, serial, 115);
+
+  //Esperem la resposta i la examinem
+  read(socketFD, serial, 115);
+  char trama[sizeof(osPacket)];
+  osPacket resposta;
+  //Inicialitzem
+  memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
+  tramaResposta.tipus = '\0';
+  memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
+  //Deserialitzem
+  /** Lectura de trama **/
+  //Lectura de l'origen
+  strncpy(resposta.origen, trama, 4);
+  //Lectura tipus
+  resposta.tipus = trama[14];
+  //Lectura de dades
+  strncpy(resposta.dades, trama + 15, 100);
+  switch(resposta.tipus){
+    case 'Z':
+      //Error de trames
+      write(1, ERROR_DE_TRAMA, strlen(ERROR_DE_TRAMA));
+    break;
+    case 'B':
+      //Error de dades
+      write(1, ERROR_DE_DADES, strlen(ERROR_DE_DADES));
+    break;
+    default:
+      //Tot Correcte
+    break;
+  }
+
 
   return 0;
 }
