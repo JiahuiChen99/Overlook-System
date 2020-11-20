@@ -8,8 +8,13 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+//#include "./connectionUtils/socket.h"
 
-#include "connectionUtils/socket.h"
+typedef struct {
+    char origen[14];
+    char tipus;
+    char dades[100];
+} osPacket;
 
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
@@ -55,6 +60,7 @@ typedef struct configJack{
 
 int parseigDadesDanny(osPacket dadesMeteorologiques);
 int llegirDadesClient(int fd);
+int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
 int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);

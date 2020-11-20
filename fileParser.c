@@ -121,6 +121,63 @@ int llegirDadesClient(int socketFD){
   return 0;
 }
 
+int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
+
+  //Inicialització del serial
+  char serial[115];
+  char aux[10];
+  memset(aux, '\0', sizeof(aux));
+  memset(serial, '\0', sizeof(serial));
+  //Inicialització de la trama
+  osPacket message;
+  memset(message.origen, '\0', sizeof(message.origen));
+  message.tipus = '\0';
+  memset(message.dades, '\0', sizeof(message.dades));
+
+  // enviar nom estació
+  strcpy(message.origen,config->nom);
+  message.tipus = 'D';
+  //TODO: enviar tota la info
+  int index=0;
+  strcpy(message.dades,txtFile.data);
+  index += strlen(txtFile.data);
+  message.dades[index]='#';
+
+  strcat(message.dades,txtFile.hora);
+  index += strlen(txtFile.data);
+  message.dades[index]='#';
+
+  sprintf(aux, "%f%c", txtFile.temperatura, '\0');
+  strcat(message.dades,aux);
+  index += strlen(aux);
+  message.dades[index]='#';
+
+  sprintf(aux, "%d%c", txtFile.humitat, '\0');
+  strcat(message.dades,aux);
+  index += strlen(aux);
+  message.dades[index]='#';
+
+  sprintf(aux, "%f%c", txtFile.pressio_atmosferica, '\0');
+  strcat(message.dades,aux);
+  index += strlen(aux);
+  message.dades[index]='#';
+
+  sprintf(aux, "%f%c", txtFile.precipitacio, '\0');
+  strcat(message.dades,aux);
+  index += strlen(aux);
+  message.dades[index]='\0';
+
+
+  //Serialitzar
+  strcpy(serial, message.origen);
+  serial[strlen(serial) + 1] =  message.tipus;
+  strcat(serial, message.dades);
+
+  write(socketFD, serial, 115);
+
+  return 0;
+}
+
 int fileDetection(configDanny *config, int socket){
     DIR *directori;
     struct dirent *directoryFile;
@@ -257,47 +314,8 @@ int fileDetection(configDanny *config, int socket){
                         write(1, buff2, bytes);
                         write(1, "\n", 1);
 
-                        /* Output a enviar:
-                        Igualada
-                        25/09/2020
-                        15:30:58
-                        24.5
-                        73
-                        1014.2
-                        2.5
-                        */
-                        // enviar nom estació
-                        osPacket message;
-                        strcpy(message.origen,config->nom);
-                        message.tipus = 'D';
-                        //TODO: enviar tota la info
-                        int index=0;
-                        strcpy(message.dades,txtFile->data);
-                        index += strlen(txtFile.data);
-                        message.dades[index]='#';
 
-                        strcat(message.dades,txtFile->hora);
-                        index += strlen(txtFile.data);
-                        message.dades[index]='#';
-
-                        strcat(message.dades,ftoa(txtFile->temperatura));
-                        index += strlen(ftoa(txtFile->temperatura));
-                        message.dades[index]='#';
-
-                        strcat(message.dades,itoa(txtFile->humitat));
-                        index += strlen(itoa(txtFile->temperatura));
-                        message.dades[index]='#';
-
-                        strcat(message.dades,ftoa(txtFile->pressio_atmosferica));
-                        index += strlen(ftoa(txtFile->pressio_atmosferica));
-                        message.dades[index]='#';
-
-                        strcat(message.dades,ftoa(txtFile->precipitacio));
-                        index += strlen(ftoa(txtFile->precipitacio));
-                        message.dades[index]='\0';
-
-                        write(fd, message, 115);
-
+                        enviarDadesClient(socket, txtFile, config);
 
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);

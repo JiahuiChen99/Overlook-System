@@ -10,6 +10,7 @@
 #include <fcntl.h>
 
 #include "fileParser.h"
+#include "./connectionUtils/socket.h"
 
 #define START "Starting Danny...\n"
 #define DISCONNECTION "Disconnecting Danny...\n"

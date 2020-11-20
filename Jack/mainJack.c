@@ -45,10 +45,10 @@ int main(int argc, char *argv[]) {
   while(1){
     //Fer un accept
     struct sockaddr_in cli_addr;
-    socklen_t length = sizeof (s_addr);
+    socklen_t length = sizeof (cli_addr);
 
-    socketsClients[socketCounter] = accept (sockfd, (void *) &cli_addr, &length);
-    if (newsock < 0){
+    socketsClients[socketCounter] = accept (generalSocketFD, (void *) &cli_addr, &length);
+    if (socketsClients[socketCounter] < 0){
       bytes = sprintf(buff, ACCEPT_ERROR);
       write(1, buff, bytes);
       return -1;

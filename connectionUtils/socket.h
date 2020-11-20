@@ -1,6 +1,5 @@
 #ifndef OVERLOOK_SYSTEM_SOCKETS_H
 #define OVERLOOK_SYSTEM_SOCKETS_H
-#define _DEFAULT_SOURCE
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -12,11 +11,13 @@
 #define LISTEN_ERROR "Error en fer el Listen!\n"
 #define ACCEPT_ERROR "Error en fer el Accept!\n"
 
+/* Lo ponemos en fileparser.h porque si no no compila
 typedef struct {
     char origen[14];
     char tipus;
     char dades[100];
-}osPacket;
+} osPacket;
+*/
 
 /*
 *Iniciar el servidor amb la ip i port donats
