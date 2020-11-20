@@ -53,6 +53,7 @@ int main(int argc, char *argv[]) {
       write(1, buff, bytes);
       return -1;
     }
+    printf("TENIM UN NOU CLIENT\n");
     socketCounter = socketCounter == 2 ? 0 : socketCounter+1;
     //Fork per tractar el socket
     forkIDsClients[forkCounter] = fork();
@@ -65,6 +66,7 @@ int main(int argc, char *argv[]) {
       case 0:
         //fill
         //Començar a mirar qué ens envien i printar.
+        printf("Anem a entrar a gestionar client\n");
         gestionarClient(socketsClients[socketCounter]);
         return 0;
       break;

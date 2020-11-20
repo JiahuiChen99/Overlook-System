@@ -60,8 +60,9 @@ int iniciarclient(char *ip, int port){
 }
 
 int gestionarClient(int fd){
-  int finish;
+  int finish=1;
   do{
+    printf("Abans de entrar a llegir dades\n");
     finish = llegirDadesClient(fd);
   }while(finish < 0);
   return 0;
