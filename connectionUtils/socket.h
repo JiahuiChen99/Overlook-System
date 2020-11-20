@@ -11,6 +11,13 @@
 #define BIND_ERROR "Error en fer el Bind!\n"
 #define LISTEN_ERROR "Error en fer el Listen!\n"
 #define ACCEPT_ERROR "Error en fer el Accept!\n"
+
+typedef struct {
+    char origen[14];
+    char tipus;
+    char dades[100];
+}osPacket;
+
 /*
 *Iniciar el servidor amb la ip i port donats
 *

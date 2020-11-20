@@ -6,44 +6,7 @@ int llegirDadesClient(int fd){
   float temp, pressio, precipitacio;
   int humitat;
 
-  //nom estació
-  aux = llegirCadena(fd);
-  if(strcmp("aux"), "DISCONNECT") return -1;
-  write(1,aux, strlen(aux));
-  free(aux);
 
-  //data
-  aux = llegirCadena(fd);
-  write(1,aux, strlen(aux));
-  free(aux);
-
-  //hora
-  aux = llegirCadena(fd);
-  write(1,aux, strlen(aux));
-  free(aux);
-
-  //float
-  aux = llegirCadena(fd);
-  temp = atof(aux);
-  write(1,temp, sizeof(float));
-  free(aux);
-
-  //int
-  aux = llegirCadena(fd);
-  humitat = atoi(aux);
-  free(aux);
-
-  //float
-  aux = llegirCadena(fd);
-  pressio = atof(aux);
-  write(1,pressio, sizeof(float));
-  free(aux);
-
-  //Float
-  aux = llegirCadena(fd);
-  precipitacio = atof(aux);
-  write(1,precipitacio, sizeof(float));
-  free(aux);
 
   return 0;
 }

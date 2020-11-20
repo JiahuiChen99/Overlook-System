@@ -49,7 +49,7 @@ typedef struct configJack{
 }configJack;
 
 int llegirDadesClient(int fd);
-int fileDetection(configDanny *config);
+int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);
 
