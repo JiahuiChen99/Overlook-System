@@ -2,7 +2,7 @@
 
 int iniciarServidor(char *ip, int port){
   char buff[100];
-  int bytes
+  int bytes;
   //Creem el socket
   int socketFD = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 

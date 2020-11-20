@@ -3,14 +3,18 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
+
 #include "../fileParser.h"
+#include "../connectionUtils/socket.h"
 
 
 #define START  "Starting Jack...\n"
+#define ERROR_FORK "Error al fer fork! \n"
 
 int main(int argc, char *argv[]) {
   configJack config;
-  int generalSocketFD;
+  int generalSocketFD, bytes;
+  char buff[100];
 
   //Fem una ràpida comprovació d'arguments
   if(argc < 2){
@@ -20,7 +24,7 @@ int main(int argc, char *argv[]) {
       exit(ERROR_RETURN);
   }
 
-  write(1, START, sizeof(START));
+  write(1, START, strlen(START));
 
 
   //Primer llegim la configuració
@@ -37,6 +41,7 @@ int main(int argc, char *argv[]) {
   int forkIDsClients[3];
   int socketCounter = 0;
   int forkCounter = 0;
+
   while(1){
     //Fer un accept
     struct sockaddr_in cli_addr;
@@ -48,12 +53,14 @@ int main(int argc, char *argv[]) {
       write(1, buff, bytes);
       return -1;
     }
-    socketCounter = socketCounter == 2 ? 0 : socketCounter+1
+    socketCounter = socketCounter == 2 ? 0 : socketCounter+1;
     //Fork per tractar el socket
     forkIDsClients[forkCounter] = fork();
     switch (forkIDsClients[forkCounter]) {
       case -1:
         //Display error
+        bytes = sprintf(buff, ERROR_FORK);
+        write(1, buff, bytes);
       break;
       case 0:
         //fill
@@ -63,7 +70,7 @@ int main(int argc, char *argv[]) {
       break;
       default:
         //Pare
-        forkCounter = forkCounter == 2 ? 0 : forkCounter+1
+        forkCounter = forkCounter == 2 ? 0 : forkCounter+1;
       break;
     }
 
