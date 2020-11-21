@@ -114,8 +114,9 @@ int llegirDadesClient(int socketFD){
     //Serialitzar
     //strcpy(serial, tramaResposta.origen);
     memcpy(serial, tramaResposta.origen, sizeof(tramaResposta.origen));
-    serial[strlen(serial) + 1] =  tramaResposta.tipus;
-    strncat(serial, tramaResposta.dades, sizeof(tramaResposta.dades));
+    serial[sizeof(serial)] =  tramaResposta.tipus;
+    int tamany = sizeof(tramaResposta.dades);
+    strncat(serial, tramaResposta.dades, tamany);
 
     //Enviar
     write(socketFD, serial, sizeof(serial));
@@ -143,39 +144,47 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
   //TODO: enviar tota la info
   int index=0;
   strcpy(message.dades,txtFile.data);
-  index += strlen(txtFile.data);
+  index = strlen(message.dades);
   message.dades[index]='#';
 
   strcat(message.dades,txtFile.hora);
-  index += strlen(txtFile.data);
+  index = strlen(message.dades);
   message.dades[index]='#';
 
-  sprintf(aux, "%f%c", txtFile.temperatura, '\0');
+  sprintf(aux, "%.2f%c", txtFile.temperatura, '\0');
   strcat(message.dades,aux);
-  index += strlen(aux);
+  index = strlen(message.dades);
   message.dades[index]='#';
+
 
   sprintf(aux, "%d%c", txtFile.humitat, '\0');
   strcat(message.dades,aux);
-  index += strlen(aux);
+  index = strlen(message.dades);
   message.dades[index]='#';
 
-  sprintf(aux, "%f%c", txtFile.pressio_atmosferica, '\0');
+  sprintf(aux, "%.2f%c", txtFile.pressio_atmosferica, '\0');
   strcat(message.dades,aux);
-  index += strlen(aux);
+  index = strlen(message.dades);
   message.dades[index]='#';
 
-  sprintf(aux, "%f%c", txtFile.precipitacio, '\0');
+
+  sprintf(aux, "%.2f%c", txtFile.precipitacio, '\0');
   strcat(message.dades,aux);
-  index += strlen(aux);
+  index = strlen(message.dades);
   message.dades[index]='\0';
 
 
   //Serialitzar
   //strcpy(serial, message.origen);
   memcpy(serial, message.origen, sizeof(message.origen));
-  serial[strlen(serial) + 1] =  message.tipus;
-  strncat(serial, message.dades, sizeof(message.dades));
+  printf("%s\n", serial);
+  //int tamany = sizeof(message.tipus);
+  //strncat(serial, message.tipus, tamany);
+  serial[sizeof(message.origen)] =  message.tipus;
+  printf("%s\n", serial);
+  int tamany = sizeof(message.dades);
+  strncat(serial, message.dades, tamany);
+  printf("%s\n", serial);
 
 
   write(socketFD, serial, 115);
