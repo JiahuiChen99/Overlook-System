@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 0: //fill
                 //TODO: Afegir el nom del client
-                bytes = sprintf(buff, NEW_CONNECTION, "Igualada");
+                bytes = sprintf(buff, NEW_CONNECTION, "Igualada\n");
                 write(1, buff, bytes);
                 gestionarClient(socketsClients[socketCounter]);
                 return 0;

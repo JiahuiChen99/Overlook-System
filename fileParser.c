@@ -4,10 +4,10 @@
 int parseigDadesDanny(osPacket dadesMeteorologiques){
     int i, j, hashtagCounter, bytes;
     char *aux = NULL, buff[100];
-    aux = (char *) malloc(sizeof(char) * 1);
-    i = j = bytes = 0;
+    i = j = bytes = hashtagCounter = 0;
     txtFile dadesDanny;
 
+    aux = (char *) malloc(sizeof(char) * 1);
     memset(buff, '\0', sizeof(buff));
 
     dadesDanny.data = NULL;
@@ -18,15 +18,26 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
     dadesDanny.precipitacio = 0.00f;
 
     while(i < 100){
-        while(dadesMeteorologiques.dades[i] != '#'){
-            aux[j] = dadesMeteorologiques.dades[i];
-            aux = (char *)realloc(aux, sizeof(char)* (j + 2));
-            i++;
-            j++;
+        while(dadesMeteorologiques.dades[i] != '#' && i < 100){
+            if(hashtagCounter < 5){
+                aux[j] = dadesMeteorologiques.dades[i];
+                j++;
+                aux = (char *)realloc(aux, sizeof(char)* (j + 1));
+                i++;
+            }else{
+                if(dadesMeteorologiques.dades[i] != '\0'){
+                    aux[j] = dadesMeteorologiques.dades[i];
+                    j++;
+                    aux = (char *)realloc(aux, sizeof(char)* (j + 1));
+                    i++;
+                }else{
+                    break;
+                }
+            }
         }
+
         //Recordar posar \0 SEMPRE
-        aux = (char *)realloc(aux, sizeof(char)* (j + 2));
-        aux[sizeof(aux) - 1] = '\0';
+        aux[j] = '\0';
         switch (hashtagCounter) {
             case 0:
                 //Comprovar data
@@ -34,6 +45,8 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
                     free(aux);
                     return ERROR_DADES_DANNY;
                 }
+                dadesDanny.data = (char *)malloc(sizeof(char)* (j + 1));
+                memset(dadesDanny.data, '\0', j + 1);
                 strcpy(dadesDanny.data, aux);
                 break;
             case 1:
@@ -42,6 +55,8 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
                     free(aux);
                     return ERROR_DADES_DANNY;
                 }
+                dadesDanny.hora = (char *)malloc(sizeof(char)* (j + 1));
+                memset(dadesDanny.hora, '\0', j + 1);
                 strcpy(dadesDanny.hora, aux);
                 break;
             case 2:
@@ -84,8 +99,6 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
         j = 0;
     }
 
-    write(1, dadesMeteorologiques.origen, strlen(dadesMeteorologiques.origen));
-    write(1, "\n", 1);
     write(1, dadesDanny.data, strlen(dadesDanny.data));
     write(1, "\n", 1);
     write(1, dadesDanny.hora, strlen(dadesDanny.hora));
@@ -102,6 +115,10 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
     bytes = sprintf(buff, "%.1f", dadesDanny.precipitacio);
     write(1, buff, bytes);
     write(1, "\n", 1);
+
+    free(dadesDanny.data);
+    free(dadesDanny.hora);
+    free(aux);
 
     return 0;
 }
@@ -133,7 +150,8 @@ int llegirDadesClient(int socketFD){
 
         /** Lectura de trama **/
         //Lectura de l'origen
-        strncpy(dadesMeteorologiques.origen, trama, 4);
+        strncpy(dadesMeteorologiques.origen, trama, 14);
+        write(1, dadesMeteorologiques.origen, strlen(dadesMeteorologiques.origen));
         //Lectura tipus
         dadesMeteorologiques.tipus = trama[14];
         //Lectura de dades
@@ -207,7 +225,7 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
     index = strlen(message.dades);
     message.dades[index]='#';
 
-    sprintf(aux, "%.2f%c", txtFile.temperatura, '\0');
+    sprintf(aux, "%.1f%c", txtFile.temperatura, '\0');
     strcat(message.dades,aux);
     index = strlen(message.dades);
     message.dades[index]='#';
@@ -218,13 +236,13 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
     index = strlen(message.dades);
     message.dades[index]='#';
 
-    sprintf(aux, "%.2f%c", txtFile.pressio_atmosferica, '\0');
+    sprintf(aux, "%.1f%c", txtFile.pressio_atmosferica, '\0');
     strcat(message.dades,aux);
     index = strlen(message.dades);
     message.dades[index]='#';
 
 
-    sprintf(aux, "%.2f%c", txtFile.precipitacio, '\0');
+    sprintf(aux, "%.1f%c", txtFile.precipitacio, '\0');
     strcat(message.dades,aux);
     index = strlen(message.dades);
     message.dades[index]='\0';
@@ -415,7 +433,7 @@ int fileDetection(configDanny *config, int socket){
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);
 
-                        remove(fitxerActual);
+                        //remove(fitxerActual);
 
                         free(txtFile.data);
                         free(txtFile.hora);
