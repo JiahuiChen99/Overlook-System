@@ -112,9 +112,10 @@ int llegirDadesClient(int socketFD){
     }
 
     //Serialitzar
-    strcpy(serial, tramaResposta.origen);
+    //strcpy(serial, tramaResposta.origen);
+    memcpy(serial, tramaResposta.origen, sizeof(tramaResposta.origen));
     serial[strlen(serial) + 1] =  tramaResposta.tipus;
-    strcat(serial, tramaResposta.dades);
+    strncat(serial, tramaResposta.dades, sizeof(tramaResposta.dades));
 
     //Enviar
     write(socketFD, serial, sizeof(serial));
