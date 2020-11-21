@@ -171,9 +171,11 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
 
 
   //Serialitzar
-  strcpy(serial, message.origen);
+  //strcpy(serial, message.origen);
+  memcpy(serial, message.origen, sizeof(message.origen));
   serial[strlen(serial) + 1] =  message.tipus;
-  strcat(serial, message.dades);
+  strncat(serial, message.dades, sizeof(message.dades));
+
 
   write(socketFD, serial, 115);
 
