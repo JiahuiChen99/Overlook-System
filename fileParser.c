@@ -179,20 +179,20 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
 
   //Esperem la resposta i la examinem
   read(socketFD, serial, 115);
-  char trama[sizeof(osPacket)];
   osPacket resposta;
+
   //Inicialitzem
-  memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
-  tramaResposta.tipus = '\0';
-  memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
+  memset(resposta.origen, '\0', sizeof(resposta.origen));
+  resposta.tipus = '\0';
+  memset(resposta.dades, '\0', sizeof(resposta.dades));
   //Deserialitzem
   /** Lectura de trama **/
   //Lectura de l'origen
-  strncpy(resposta.origen, trama, 4);
+  strncpy(resposta.origen, serial, 4);
   //Lectura tipus
-  resposta.tipus = trama[14];
+  resposta.tipus = serial[14];
   //Lectura de dades
-  strncpy(resposta.dades, trama + 15, 100);
+  strncpy(resposta.dades, serial + 15, 100);
   switch(resposta.tipus){
     case 'Z':
       //Error de trames
