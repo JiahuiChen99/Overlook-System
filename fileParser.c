@@ -19,36 +19,42 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
             case 0:
                 //Comprovar data
                 if(strlen(aux) != 10){
+                    free(aux);
                     return ERROR_DADES_DANNY;
                 }
                 break;
             case 1:
                 //Comprovar hora
                 if(strlen(aux) != 8){
+                    free(aux);
                     return ERROR_DADES_DANNY;
                 }
                 break;
             case 2:
                 //Comprovar temperatura
                 if(strlen(aux) > 5){
+                    free(aux);
                     return ERROR_DADES_DANNY;
                 }
                 break;
             case 3:
                 //Comprovar humitat
                 if(strlen(aux) > 3){
+                    free(aux);
                     return ERROR_DADES_DANNY;
                 }
                 break;
             case 4:
                 //Comprovar pressió
                 if(strlen(aux) > 6){
+                    free(aux);
                     return ERROR_DADES_DANNY;
                 }
                 break;
             case 5:
                 //Comprovar precipitació
                 if(strlen(aux) > 4){
+                    free(aux);
                     return ERROR_DADES_DANNY;
                 }
                 break;
@@ -59,7 +65,6 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
         i++;
         j = 0;
     }
-
     return 0;
 }
 
@@ -122,105 +127,114 @@ int llegirDadesClient(int socketFD){
     write(socketFD, serial, sizeof(serial));
 
 
-  return 0;
+    return 0;
+}
+
+/**
+* Ens permet concatenar les dades meteològiques a l'estructura
+* serialitzada que enviem cap a Jack
+* RECORDATORI: Les funcions de la llibreria string funcionen fins a trobar
+* el primer \0, el prints i writes també
+**/
+void dadesMeteorologiquesSerializer(char *serial, char *dades){
+    int j = 15;
+
+    for(int i = 0; i < (int)strlen(dades); i++){
+        serial[j] = dades[i];
+        j++;
+    }
 }
 
 int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
 
-  //Inicialització del serial
-  char serial[115];
-  char aux[10];
-  memset(aux, '\0', sizeof(aux));
-  memset(serial, '\0', sizeof(serial));
-  //Inicialització de la trama
-  osPacket message;
-  memset(message.origen, '\0', sizeof(message.origen));
-  message.tipus = '\0';
-  memset(message.dades, '\0', sizeof(message.dades));
+    //Inicialització del serial
+    char serial[115];
+    char aux[10];
+    memset(aux, '\0', sizeof(aux));
+    memset(serial, '\0', sizeof(serial));
+    //Inicialització de la trama
+    osPacket message;
+    memset(message.origen, '\0', sizeof(message.origen));
+    message.tipus = '\0';
+    memset(message.dades, '\0', sizeof(message.dades));
 
-  // enviar nom estació
-  strcpy(message.origen,config->nom);
-  message.tipus = 'D';
-  //TODO: enviar tota la info
-  int index=0;
-  strcpy(message.dades,txtFile.data);
-  index = strlen(message.dades);
-  message.dades[index]='#';
+    // enviar nom estació
+    strcpy(message.origen,config->nom);
+    message.tipus = 'D';
+    //TODO: enviar tota la info
+    int index=0;
+    strcpy(message.dades,txtFile.data);
+    index = strlen(message.dades);
+    message.dades[index]='#';
 
-  strcat(message.dades,txtFile.hora);
-  index = strlen(message.dades);
-  message.dades[index]='#';
+    strcat(message.dades,txtFile.hora);
+    index = strlen(message.dades);
+    message.dades[index]='#';
 
-  sprintf(aux, "%.2f%c", txtFile.temperatura, '\0');
-  strcat(message.dades,aux);
-  index = strlen(message.dades);
-  message.dades[index]='#';
-
-
-  sprintf(aux, "%d%c", txtFile.humitat, '\0');
-  strcat(message.dades,aux);
-  index = strlen(message.dades);
-  message.dades[index]='#';
-
-  sprintf(aux, "%.2f%c", txtFile.pressio_atmosferica, '\0');
-  strcat(message.dades,aux);
-  index = strlen(message.dades);
-  message.dades[index]='#';
+    sprintf(aux, "%.2f%c", txtFile.temperatura, '\0');
+    strcat(message.dades,aux);
+    index = strlen(message.dades);
+    message.dades[index]='#';
 
 
-  sprintf(aux, "%.2f%c", txtFile.precipitacio, '\0');
-  strcat(message.dades,aux);
-  index = strlen(message.dades);
-  message.dades[index]='\0';
+    sprintf(aux, "%d%c", txtFile.humitat, '\0');
+    strcat(message.dades,aux);
+    index = strlen(message.dades);
+    message.dades[index]='#';
+
+    sprintf(aux, "%.2f%c", txtFile.pressio_atmosferica, '\0');
+    strcat(message.dades,aux);
+    index = strlen(message.dades);
+    message.dades[index]='#';
 
 
-  //Serialitzar
-  //strcpy(serial, message.origen);
-  memcpy(serial, message.origen, sizeof(message.origen));
-  printf("%s\n", serial);
-  //int tamany = sizeof(message.tipus);
-  //strncat(serial, message.tipus, tamany);
-  serial[sizeof(message.origen)] =  message.tipus;
-  printf("%s\n", serial);
-  int tamany = sizeof(message.dades);
-  strncat(serial, message.dades, tamany);
-  printf("%s\n", serial);
+    sprintf(aux, "%.2f%c", txtFile.precipitacio, '\0');
+    strcat(message.dades,aux);
+    index = strlen(message.dades);
+    message.dades[index]='\0';
 
 
-  write(socketFD, serial, 115);
-
-  //Esperem la resposta i la examinem
-  read(socketFD, serial, 115);
-  osPacket resposta;
-
-  //Inicialitzem
-  memset(resposta.origen, '\0', sizeof(resposta.origen));
-  resposta.tipus = '\0';
-  memset(resposta.dades, '\0', sizeof(resposta.dades));
-  //Deserialitzem
-  /** Lectura de trama **/
-  //Lectura de l'origen
-  strncpy(resposta.origen, serial, 4);
-  //Lectura tipus
-  resposta.tipus = serial[14];
-  //Lectura de dades
-  strncpy(resposta.dades, serial + 15, 100);
-  switch(resposta.tipus){
-    case 'Z':
-      //Error de trames
-      write(1, ERROR_DE_TRAMA, strlen(ERROR_DE_TRAMA));
-    break;
-    case 'B':
-      //Error de dades
-      write(1, ERROR_DE_DADES, strlen(ERROR_DE_DADES));
-    break;
-    default:
-      //Tot Correcte
-    break;
-  }
+    //Serialitzar
+    memcpy(serial, message.origen, sizeof(message.origen));
+    serial[14] =  message.tipus;
+    dadesMeteorologiquesSerializer(serial, message.dades);
 
 
-  return 0;
+
+    write(socketFD, serial, 115);
+
+    //Esperem la resposta i la examinem
+    read(socketFD, serial, 115);
+    osPacket resposta;
+
+    //Inicialitzem
+    memset(resposta.origen, '\0', sizeof(resposta.origen));
+    resposta.tipus = '\0';
+    memset(resposta.dades, '\0', sizeof(resposta.dades));
+    //Deserialitzem
+    /** Lectura de trama **/
+    //Lectura de l'origen
+    strncpy(resposta.origen, serial, 4);
+    //Lectura tipus
+    resposta.tipus = serial[14];
+    //Lectura de dades
+    strncpy(resposta.dades, serial + 15, 100);
+    switch(resposta.tipus){
+        case 'Z':
+            //Error de trames
+            write(1, ERROR_DE_TRAMA, strlen(ERROR_DE_TRAMA));
+            break;
+        case 'B':
+            //Error de dades
+            write(1, ERROR_DE_DADES, strlen(ERROR_DE_DADES));
+            break;
+        default:
+            //Tot Correcte
+            break;
+    }
+
+
+    return 0;
 }
 
 int fileDetection(configDanny *config, int socket){

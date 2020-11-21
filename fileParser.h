@@ -60,6 +60,7 @@ typedef struct configJack{
 
 int parseigDadesDanny(osPacket dadesMeteorologiques);
 int llegirDadesClient(int fd);
+void dadesMeteorologiquesSerializer(char *serial, char *dades);
 int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
 int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);
