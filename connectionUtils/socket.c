@@ -150,7 +150,8 @@ char * protocolconnexioServidor(int fd){
         serial[14]='O';
         dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
         write(fd, serial, 115);
-        return(tramaRebuda.dades);
+        char *out = tramaRebuda.dades;
+        return(out);
     }else{
         tamany = sizeof("JACK");
         strncpy(tramaResposta.origen, "JACK", tamany);

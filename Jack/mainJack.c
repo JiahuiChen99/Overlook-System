@@ -1,3 +1,4 @@
+#define _POSIX_SOURCE
 #include <pthread.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -100,8 +101,10 @@ int main(int argc, char *argv[]) {
                 write(1, buff, bytes);
                 break;
             case 0:
+                ;
                 //TODO: Afegir el nom del client
-                char * nomclient = protocolconnexioServidor(socketsClients[socketCounter]);
+                char *nomclient;
+                nomclient = protocolconnexioServidor(socketsClients[socketCounter]);
                 if (strcmp(nomclient, "ERROR") == 0) return 0;
                 bytes = sprintf(buff, NEW_CONNECTION, nomclient);
                 write(1, buff, bytes);

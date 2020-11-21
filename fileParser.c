@@ -10,6 +10,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
     aux = (char *) malloc(sizeof(char) * 1);
     memset(buff, '\0', sizeof(buff));
 
+
     dadesDanny.data = NULL;
     dadesDanny.hora = NULL;
     dadesDanny.temperatura = 0.00f;
@@ -157,6 +158,9 @@ int llegirDadesClient(int socketFD, char *nomclient){
         //Lectura de dades
         strncpy(dadesMeteorologiques.dades, trama + 15, 100);
 
+        char buffer[20];
+        int bytes = sprintf(buffer, "%s%c", nomclient, '\0');
+        write(1,buffer,bytes);
         int dadesStatus = parseigDadesDanny(dadesMeteorologiques);
 
         if(dadesStatus == ERROR_DADES_DANNY){
