@@ -59,10 +59,10 @@ int iniciarclient(char *ip, int port){
     return socketFD;
 }
 
-int gestionarClient(int fd){
+int gestionarClient(int fd, char *nomclient){
     int finish=1;
     do{
-        finish = llegirDadesClient(fd);
+        finish = llegirDadesClient(fd, nomclient);
     }while(finish < 0);
     return 0;
 }
@@ -85,4 +85,79 @@ int protocolDesconnexio(int fd, char * nom){
 
   //enviem
   write(fd, serial, 115);
+}
+
+int protocolconnexioClient(int fd, char * nom){
+  char serial[115];
+  //Inicialització de la trama
+  osPacket message;
+  memset(message.origen, '\0', sizeof(message.origen));
+  message.tipus = '\0';
+  memset(message.dades, '\0', sizeof(message.dades));
+
+  // enviar nom estació
+  strcpy(message.origen, "DANNY");
+
+  //Serialitzar
+  memcpy(serial, message.origen, sizeof(message.origen));
+  serial[14] =  'C';
+  dadesMeteorologiquesSerializer(serial, nom);
+
+  //enviem
+  write(fd, serial, 115);
+
+  read(fd, serial, 115);
+
+  if (trama[14] == 'E') {
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+char * protocolconnexioServidor(int fd){
+  char serial[115];
+  osPacket tramaRebuda, tramaResposta;
+  char *
+  //Inicialització de la trama
+  memset(tramaRebuda.origen, '\0', sizeof(tramaRebuda.origen));
+  tramaRebuda.tipus = '\0';
+  memset(tramaRebuda.dades, '\0', sizeof(tramaRebuda.dades));
+
+  //Inicialització de la tramaResposta
+  memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
+  memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
+
+  //Llegim
+  read(fd, serial, 115);
+
+  /** Lectura de trama **/
+  //Lectura de l'origen
+  strncpy(tramaRebuda.origen, serial, 14);
+  //Lectura tipus
+  tramaRebuda.tipus = serial[14];
+  //Lectura de dades
+  strncpy(tramaRebuda.dades, serial + 15, 100);
+
+  if ((strcmp("DANNY", tramaRebuda.origen)==0)&&(tramaRebuda.tipus == 'C')){
+
+    strncpy(tramaResposta.origen, "JACK" , sizeof("JACK"));
+    strncpy(tramaResposta.dades, "CONNEXIO OK" , sizeof("CONNEXIO OK"));
+    memset(serial, '\0', sizeof(serial));
+    strncpy(serial, tramaResposta.origen , sizeof(tramaResposta.origen));
+    serial[14]='O';
+    dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
+    write(fd, serial, 115);
+    return(tramaRebuda.dades);
+  }else{
+
+    strncpy(tramaResposta.origen, "JACK" , sizeof("JACK"));
+    strncpy(tramaResposta.dades, "ERROR" , sizeof("ERROR"));
+    memset(serial, '\0', sizeof(serial));
+    strncpy(serial, tramaResposta.origen , sizeof(tramaResposta.origen));
+    serial[14]='E';
+    dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
+    write(fd, serial, 115);
+    return("ERROR");
+  }
 }

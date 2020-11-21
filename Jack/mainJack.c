@@ -101,9 +101,11 @@ int main(int argc, char *argv[]) {
       break;
       case 0:
         //TODO: Afegir el nom del client
-        bytes = sprintf(buff, NEW_CONNECTION, "Igualada");
+        char * nomclient =protocolconnexioServidor(socketsClients[socketCounter]);
+        if (strcmp(nomclient, "ERROR") == 0) return 0;
+        bytes = sprintf(buff, NEW_CONNECTION, nomclient);
         write(1, buff, bytes);
-        gestionarClient(socketsClients[socketCounter]);
+        gestionarClient(socketsClients[socketCounter], nomclient);
         return 0;
         break;
 

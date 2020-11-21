@@ -106,7 +106,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
     return 0;
 }
 
-int llegirDadesClient(int socketFD){
+int llegirDadesClient(int socketFD, char *nomclient){
     char trama[sizeof(osPacket)], serial[115];
     osPacket dadesMeteorologiques, tramaResposta;
 
