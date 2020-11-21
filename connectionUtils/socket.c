@@ -63,7 +63,7 @@ int gestionarClient(int fd, char *nomclient){
     int finish=1;
     do{
         finish = llegirDadesClient(fd, nomclient);
-    }while(finish < 0);
+    }while(finish >= 0);
     return 0;
 }
 
