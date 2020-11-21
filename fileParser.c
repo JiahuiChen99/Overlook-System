@@ -2,10 +2,20 @@
 
 
 int parseigDadesDanny(osPacket dadesMeteorologiques){
-    int i, j, hashtagCounter;
-    char *aux = NULL;
+    int i, j, hashtagCounter, bytes;
+    char *aux = NULL, buff[100];
     aux = (char *) malloc(sizeof(char) * 1);
-    i = j = 0;
+    i = j = bytes = 0;
+    txtFile dadesDanny;
+
+    memset(buff, '\0', sizeof(buff));
+
+    dadesDanny.data = NULL;
+    dadesDanny.hora = NULL;
+    dadesDanny.temperatura = 0.00f;
+    dadesDanny.humitat = 0;
+    dadesDanny.pressio_atmosferica = 0.00f;
+    dadesDanny.precipitacio = 0.00f;
 
     while(i < 100){
         while(dadesMeteorologiques.dades[i] != '#'){
@@ -14,7 +24,9 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
             i++;
             j++;
         }
-
+        //Recordar posar \0 SEMPRE
+        aux = (char *)realloc(aux, sizeof(char)* (j + 2));
+        aux[sizeof(aux) - 1] = '\0';
         switch (hashtagCounter) {
             case 0:
                 //Comprovar data
@@ -22,6 +34,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
                     free(aux);
                     return ERROR_DADES_DANNY;
                 }
+                strcpy(dadesDanny.data, aux);
                 break;
             case 1:
                 //Comprovar hora
@@ -29,6 +42,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
                     free(aux);
                     return ERROR_DADES_DANNY;
                 }
+                strcpy(dadesDanny.hora, aux);
                 break;
             case 2:
                 //Comprovar temperatura
@@ -36,6 +50,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
                     free(aux);
                     return ERROR_DADES_DANNY;
                 }
+                dadesDanny.temperatura = atof(aux);
                 break;
             case 3:
                 //Comprovar humitat
@@ -43,6 +58,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
                     free(aux);
                     return ERROR_DADES_DANNY;
                 }
+                dadesDanny.humitat = atoi(aux);
                 break;
             case 4:
                 //Comprovar pressió
@@ -50,6 +66,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
                     free(aux);
                     return ERROR_DADES_DANNY;
                 }
+                dadesDanny.pressio_atmosferica = atof(aux);
                 break;
             case 5:
                 //Comprovar precipitació
@@ -57,6 +74,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
                     free(aux);
                     return ERROR_DADES_DANNY;
                 }
+                dadesDanny.precipitacio = atof(aux);
                 break;
             default:
                 break;
@@ -65,13 +83,36 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
         i++;
         j = 0;
     }
+
+    write(1, dadesMeteorologiques.origen, strlen(dadesMeteorologiques.origen));
+    write(1, "\n", 1);
+    write(1, dadesDanny.data, strlen(dadesDanny.data));
+    write(1, "\n", 1);
+    write(1, dadesDanny.hora, strlen(dadesDanny.hora));
+    write(1, "\n", 1);
+    bytes = sprintf(buff, "%.1f", dadesDanny.temperatura);
+    write(1, buff, bytes);
+    write(1, "\n", 1);
+    bytes = sprintf(buff, "%d", dadesDanny.humitat);
+    write(1, buff, bytes);
+    write(1, "\n", 1);
+    bytes = sprintf(buff, "%.1f", dadesDanny.pressio_atmosferica);
+    write(1, buff, bytes);
+    write(1, "\n", 1);
+    bytes = sprintf(buff, "%.1f", dadesDanny.precipitacio);
+    write(1, buff, bytes);
+    write(1, "\n", 1);
+
     return 0;
 }
 
 int llegirDadesClient(int socketFD){
     char trama[sizeof(osPacket)], serial[115];
     osPacket dadesMeteorologiques, tramaResposta;
+
     int nBytes = read(socketFD, trama, sizeof(osPacket));
+    write(1, "$Jack:\n", sizeof("$Jack:\n"));
+    write(1, RECEIVE_DATA, strlen(RECEIVE_DATA));
 
     //Inicialització del serial
     memset(serial, '\0', sizeof(serial));

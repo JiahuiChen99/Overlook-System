@@ -12,71 +12,72 @@
 #define ERROR_FORK "Error al fer fork! \n"
 
 int main(int argc, char *argv[]) {
-  configJack config;
-  int generalSocketFD, bytes;
-  char buff[100];
+    configJack config;
+    int generalSocketFD, bytes;
+    char buff[100];
 
-  //Fem una ràpida comprovació d'arguments
-  if(argc < 2){
-      char buff[100];
-      int bytes = sprintf(buff, ARGUMENT_ERROR);
-      write(1, buff, bytes);
-      exit(ERROR_RETURN);
-  }
-
-  write(1, START, strlen(START));
-
-
-  //Primer llegim la configuració
-  config.nom = NULL;
-  config.ipJack = NULL;
-  config.portJack = 0;
-  llegirConfig(argv[1], "Jack", NULL, &config);
-
-  //Iniciem el servidor
-  generalSocketFD = iniciarServidor(config.ipJack, config.portJack);
-
-  //Esperem a rebre
-  int socketsClients[3];
-  int forkIDsClients[3];
-  int socketCounter = 0;
-  int forkCounter = 0;
-
-  while(1){
-    //Fer un accept
-    struct sockaddr_in cli_addr;
-    socklen_t length = sizeof (cli_addr);
-
-    socketsClients[socketCounter] = accept (generalSocketFD, (void *) &cli_addr, &length);
-    if (socketsClients[socketCounter] < 0){
-      bytes = sprintf(buff, ACCEPT_ERROR);
-      write(1, buff, bytes);
-      return -1;
-    }
-    printf("TENIM UN NOU CLIENT amb socket: %d\n",socketsClients[socketCounter]);
-
-    //Fork per tractar el socket
-    forkIDsClients[forkCounter] = fork();
-    switch (forkIDsClients[forkCounter]) {
-      case -1:
-        //Display error
-        bytes = sprintf(buff, ERROR_FORK);
+    //Fem una ràpida comprovació d'arguments
+    if(argc < 2){
+        char buff[100];
+        int bytes = sprintf(buff, ARGUMENT_ERROR);
         write(1, buff, bytes);
-      break;
-      case 0:
-        //fill
-        //Començar a mirar qué ens envien i printar.
-        printf("Anem a entrar a gestionar client\n");
-        gestionarClient(socketsClients[socketCounter]);
-        return 0;
-      break;
-      default:
-        //Pare
-        forkCounter = forkCounter == 2 ? 0 : forkCounter+1;
-        socketCounter = socketCounter == 2 ? 0 : socketCounter+1;
-      break;
+        exit(ERROR_RETURN);
     }
 
-  }
-  return 0;
+    write(1, START, strlen(START));
+
+
+    //Primer llegim la configuració
+    config.nom = NULL;
+    config.ipJack = NULL;
+    config.portJack = 0;
+    llegirConfig(argv[1], "Jack", NULL, &config);
+
+    //Iniciem el servidor
+    generalSocketFD = iniciarServidor(config.ipJack, config.portJack);
+
+    //Esperem a rebre
+    int socketsClients[3];
+    int forkIDsClients[3];
+    int socketCounter = 0;
+    int forkCounter = 0;
+
+    while(1){
+        //Fer un accept
+        struct sockaddr_in cli_addr;
+        socklen_t length = sizeof (cli_addr);
+
+        write(1, "$Jack:\n", sizeof("$Jack:\n"));
+        write(1, "Waiting...\n", sizeof("Waiting...\n"));
+        socketsClients[socketCounter] = accept (generalSocketFD, (void *) &cli_addr, &length);
+        if (socketsClients[socketCounter] < 0){
+            bytes = sprintf(buff, ACCEPT_ERROR);
+            write(1, buff, bytes);
+            return -1;
+        }
+
+        //Fork per tractar el socket
+        forkIDsClients[forkCounter] = fork();
+        switch (forkIDsClients[forkCounter]) {
+            case -1:
+                //Display error
+                bytes = sprintf(buff, ERROR_FORK);
+                write(1, buff, bytes);
+                break;
+            case 0: //fill
+                //TODO: Afegir el nom del client
+                bytes = sprintf(buff, NEW_CONNECTION, "Igualada");
+                write(1, buff, bytes);
+                gestionarClient(socketsClients[socketCounter]);
+                return 0;
+                break;
+            default:
+                //Pare
+                forkCounter = forkCounter == 2 ? 0 : forkCounter+1;
+                socketCounter = socketCounter == 2 ? 0 : socketCounter+1;
+                break;
+        }
+
+    }
+    return 0;
 }

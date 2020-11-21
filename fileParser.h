@@ -10,11 +10,6 @@
 #include <fcntl.h>
 #include "./connectionUtils/socket.h"
 
-typedef struct {
-    char origen[14];
-    char tipus;
-    char dades[100];
-} osPacket;
 
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
@@ -28,7 +23,14 @@ typedef struct {
 #define NO_SUCH_DIRECTORY "No such directory\n"
 
 //Jack - Parseig de dades Danny
+#define RECEIVE_DATA "Receiving data...\n"
 #define ERROR_DADES_DANNY -1
+
+typedef struct {
+    char origen[14];
+    char tipus;
+    char dades[100];
+} osPacket;
 
 typedef struct {
     char * data;
