@@ -68,96 +68,100 @@ int gestionarClient(int fd, char *nomclient){
 }
 
 int protocolDesconnexio(int fd, char * nom){
-  char serial[115];
-  //Inicialització de la trama
-  osPacket message;
-  memset(message.origen, '\0', sizeof(message.origen));
-  message.tipus = '\0';
-  memset(message.dades, '\0', sizeof(message.dades));
+    char serial[115];
+    //Inicialització de la trama
+    osPacket message;
+    memset(message.origen, '\0', sizeof(message.origen));
+    message.tipus = '\0';
+    memset(message.dades, '\0', sizeof(message.dades));
 
-  // enviar nom estació
-  strcpy(message.origen, "DANNY");
+    // enviar nom estació
+    strcpy(message.origen, "DANNY");
 
-  //Serialitzar
-  memcpy(serial, message.origen, sizeof(message.origen));
-  serial[14] =  'Q';;
-  dadesMeteorologiquesSerializer(serial, nom);
+    //Serialitzar
+    memcpy(serial, message.origen, sizeof(message.origen));
+    serial[14] =  'Q';
+    dadesMeteorologiquesSerializer(serial, nom);
 
-  //enviem
-  write(fd, serial, 115);
+    //enviem
+    write(fd, serial, 115);
+    return 0;
 }
 
 int protocolconnexioClient(int fd, char * nom){
-  char serial[115];
-  //Inicialització de la trama
-  osPacket message;
-  memset(message.origen, '\0', sizeof(message.origen));
-  message.tipus = '\0';
-  memset(message.dades, '\0', sizeof(message.dades));
+    char serial[115];
+    //Inicialització de la trama
+    osPacket message;
+    memset(message.origen, '\0', sizeof(message.origen));
+    message.tipus = '\0';
+    memset(message.dades, '\0', sizeof(message.dades));
 
-  // enviar nom estació
-  strcpy(message.origen, "DANNY");
+    // enviar nom estació
+    strcpy(message.origen, "DANNY");
 
-  //Serialitzar
-  memcpy(serial, message.origen, sizeof(message.origen));
-  serial[14] =  'C';
-  dadesMeteorologiquesSerializer(serial, nom);
+    //Serialitzar
+    memcpy(serial, message.origen, sizeof(message.origen));
+    serial[14] =  'C';
+    dadesMeteorologiquesSerializer(serial, nom);
 
-  //enviem
-  write(fd, serial, 115);
+    //enviem
+    write(fd, serial, 115);
 
-  read(fd, serial, 115);
+    read(fd, serial, 115);
 
-  if (trama[14] == 'E') {
-    return 1;
-  }else{
+    if (serial[14] == 'E') {
+        return 1;
+    }
     return 0;
-  }
 }
 
 char * protocolconnexioServidor(int fd){
-  char serial[115];
-  osPacket tramaRebuda, tramaResposta;
-  char *
-  //Inicialització de la trama
-  memset(tramaRebuda.origen, '\0', sizeof(tramaRebuda.origen));
-  tramaRebuda.tipus = '\0';
-  memset(tramaRebuda.dades, '\0', sizeof(tramaRebuda.dades));
+    char serial[115];
+    osPacket tramaRebuda, tramaResposta;
+    int tamany = 0;
+    //Inicialització de la trama
+    memset(tramaRebuda.origen, '\0', sizeof(tramaRebuda.origen));
+    tramaRebuda.tipus = '\0';
+    memset(tramaRebuda.dades, '\0', sizeof(tramaRebuda.dades));
 
-  //Inicialització de la tramaResposta
-  memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
-  memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
+    //Inicialització de la tramaResposta
+    memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
+    memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
 
-  //Llegim
-  read(fd, serial, 115);
+    //Llegim
+    read(fd, serial, 115);
 
-  /** Lectura de trama **/
-  //Lectura de l'origen
-  strncpy(tramaRebuda.origen, serial, 14);
-  //Lectura tipus
-  tramaRebuda.tipus = serial[14];
-  //Lectura de dades
-  strncpy(tramaRebuda.dades, serial + 15, 100);
+    /** Lectura de trama **/
+    //Lectura de l'origen
+    strncpy(tramaRebuda.origen, serial, 14);
+    //Lectura tipus
+    tramaRebuda.tipus = serial[14];
+    //Lectura de dades
+    strncpy(tramaRebuda.dades, serial + 15, 100);
 
-  if ((strcmp("DANNY", tramaRebuda.origen)==0)&&(tramaRebuda.tipus == 'C')){
-
-    strncpy(tramaResposta.origen, "JACK" , sizeof("JACK"));
-    strncpy(tramaResposta.dades, "CONNEXIO OK" , sizeof("CONNEXIO OK"));
-    memset(serial, '\0', sizeof(serial));
-    strncpy(serial, tramaResposta.origen , sizeof(tramaResposta.origen));
-    serial[14]='O';
-    dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
-    write(fd, serial, 115);
-    return(tramaRebuda.dades);
-  }else{
-
-    strncpy(tramaResposta.origen, "JACK" , sizeof("JACK"));
-    strncpy(tramaResposta.dades, "ERROR" , sizeof("ERROR"));
-    memset(serial, '\0', sizeof(serial));
-    strncpy(serial, tramaResposta.origen , sizeof(tramaResposta.origen));
-    serial[14]='E';
-    dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
-    write(fd, serial, 115);
-    return("ERROR");
-  }
+    if ((strcmp("DANNY", tramaRebuda.origen)==0)&&(tramaRebuda.tipus == 'C')){
+        tamany = sizeof("JACK");
+        strncpy(tramaResposta.origen, "JACK", tamany);
+        tamany = sizeof("CONNEXIO OK");
+        strncpy(tramaResposta.dades, "CONNEXIO OK", tamany);
+        memset(serial, '\0', sizeof(serial));
+        tamany = sizeof(tramaResposta.origen);
+        strncpy(serial, tramaResposta.origen, tamany);
+        serial[14]='O';
+        dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
+        write(fd, serial, 115);
+        return(tramaRebuda.dades);
+    }else{
+        tamany = sizeof("JACK");
+        strncpy(tramaResposta.origen, "JACK", tamany);
+        tamany = sizeof("ERROR");
+        strncpy(tramaResposta.dades, "ERROR", tamany);
+        memset(serial, '\0', sizeof(serial));
+        tamany = sizeof(tramaResposta.origen);
+        strncpy(serial, tramaResposta.origen, tamany);
+        serial[14]='E';
+        dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
+        write(fd, serial, 115);
+        return("ERROR");
+    }
 }

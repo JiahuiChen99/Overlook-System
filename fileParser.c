@@ -1,542 +1,71 @@
-#include "fileParser.h"
-
-
-int parseigDadesDanny(osPacket dadesMeteorologiques){
-    int i, j, hashtagCounter, bytes;
-    char *aux = NULL, buff[100];
-    i = j = bytes = hashtagCounter = 0;
-    txtFile dadesDanny;
-
-    aux = (char *) malloc(sizeof(char) * 1);
-    memset(buff, '\0', sizeof(buff));
-
-    dadesDanny.data = NULL;
-    dadesDanny.hora = NULL;
-    dadesDanny.temperatura = 0.00f;
-    dadesDanny.humitat = 0;
-    dadesDanny.pressio_atmosferica = 0.00f;
-    dadesDanny.precipitacio = 0.00f;
-
-    while(i < 100){
-        while(dadesMeteorologiques.dades[i] != '#' && i < 100){
-            if(hashtagCounter < 5){
-                aux[j] = dadesMeteorologiques.dades[i];
-                j++;
-                aux = (char *)realloc(aux, sizeof(char)* (j + 1));
-                i++;
-            }else{
-                if(dadesMeteorologiques.dades[i] != '\0'){
-                    aux[j] = dadesMeteorologiques.dades[i];
-                    j++;
-                    aux = (char *)realloc(aux, sizeof(char)* (j + 1));
-                    i++;
-                }else{
-                    break;
-                }
-            }
-        }
-
-        //Recordar posar \0 SEMPRE
-        aux[j] = '\0';
-        switch (hashtagCounter) {
-            case 0:
-                //Comprovar data
-                if(strlen(aux) != 10){
-                    free(aux);
-                    return ERROR_DADES_DANNY;
-                }
-                dadesDanny.data = (char *)malloc(sizeof(char)* (j + 1));
-                memset(dadesDanny.data, '\0', j + 1);
-                strcpy(dadesDanny.data, aux);
-                break;
-            case 1:
-                //Comprovar hora
-                if(strlen(aux) != 8){
-                    free(aux);
-                    return ERROR_DADES_DANNY;
-                }
-                dadesDanny.hora = (char *)malloc(sizeof(char)* (j + 1));
-                memset(dadesDanny.hora, '\0', j + 1);
-                strcpy(dadesDanny.hora, aux);
-                break;
-            case 2:
-                //Comprovar temperatura
-                if(strlen(aux) > 5){
-                    free(aux);
-                    return ERROR_DADES_DANNY;
-                }
-                dadesDanny.temperatura = atof(aux);
-                break;
-            case 3:
-                //Comprovar humitat
-                if(strlen(aux) > 3){
-                    free(aux);
-                    return ERROR_DADES_DANNY;
-                }
-                dadesDanny.humitat = atoi(aux);
-                break;
-            case 4:
-                //Comprovar pressió
-                if(strlen(aux) > 6){
-                    free(aux);
-                    return ERROR_DADES_DANNY;
-                }
-                dadesDanny.pressio_atmosferica = atof(aux);
-                break;
-            case 5:
-                //Comprovar precipitació
-                if(strlen(aux) > 4){
-                    free(aux);
-                    return ERROR_DADES_DANNY;
-                }
-                dadesDanny.precipitacio = atof(aux);
-                break;
-            default:
-                break;
-        }
-        hashtagCounter++;
-        i++;
-        j = 0;
-    }
-
-    write(1, dadesDanny.data, strlen(dadesDanny.data));
-    write(1, "\n", 1);
-    write(1, dadesDanny.hora, strlen(dadesDanny.hora));
-    write(1, "\n", 1);
-    bytes = sprintf(buff, "%.1f", dadesDanny.temperatura);
-    write(1, buff, bytes);
-    write(1, "\n", 1);
-    bytes = sprintf(buff, "%d", dadesDanny.humitat);
-    write(1, buff, bytes);
-    write(1, "\n", 1);
-    bytes = sprintf(buff, "%.1f", dadesDanny.pressio_atmosferica);
-    write(1, buff, bytes);
-    write(1, "\n", 1);
-    bytes = sprintf(buff, "%.1f", dadesDanny.precipitacio);
-    write(1, buff, bytes);
-    write(1, "\n", 1);
-
-    free(dadesDanny.data);
-    free(dadesDanny.hora);
-    free(aux);
-
-    return 0;
-}
-
-int llegirDadesClient(int socketFD, char *nomclient){
-    char trama[sizeof(osPacket)], serial[115];
-    osPacket dadesMeteorologiques, tramaResposta;
-
-    int nBytes = read(socketFD, trama, sizeof(osPacket));
-    write(1, "$Jack:\n", sizeof("$Jack:\n"));
-    write(1, RECEIVE_DATA, strlen(RECEIVE_DATA));
-
-    //Inicialització del serial
-    memset(serial, '\0', sizeof(serial));
-    //Inicialització de la trama
-    memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
-    tramaResposta.tipus = '\0';
-    memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
-
-    //Control dels bytes rebuts, si es perden bytes durant la comunicació error
-    if(nBytes != sizeof(osPacket) || trama[14] != 'D'){
-
-        //Popular la trama amb ERROR Trama
-        strcpy(tramaResposta.origen, "JACK");
-        tramaResposta.tipus = 'Z';
-        strcpy(tramaResposta.dades, "ERROR DE TRAMA");
-
-    }else{
-
-        /** Lectura de trama **/
-        //Lectura de l'origen
-        strncpy(dadesMeteorologiques.origen, trama, 14);
-        write(1, dadesMeteorologiques.origen, strlen(dadesMeteorologiques.origen));
-        //Lectura tipus
-        dadesMeteorologiques.tipus = trama[14];
-        //Lectura de dades
-        strncpy(dadesMeteorologiques.dades, trama + 15, 100);
-
-        int dadesStatus = parseigDadesDanny(dadesMeteorologiques);
-
-        if(dadesStatus == ERROR_DADES_DANNY){
-            //Popular la trama amb KO
-            strcpy(tramaResposta.origen, "JACK");
-            tramaResposta.tipus = 'K';
-            strcpy(tramaResposta.dades, "DADES KO");
-        }else{
-            //Popular la trama amb OK
-            strcpy(tramaResposta.origen, "JACK");
-            tramaResposta.tipus = 'B';
-            strcpy(tramaResposta.dades, "DADES OK");
-        }
-    }
-
-    //Serialitzar
-    memcpy(serial, tramaResposta.origen, sizeof(tramaResposta.origen));
-    serial[14] =  tramaResposta.tipus;
-    dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
-
-    //Enviar
-    write(socketFD, serial, sizeof(serial));
-
-
-    return 0;
-}
-
-/**
-* Ens permet concatenar les dades meteològiques a l'estructura
-* serialitzada que enviem cap a Jack
-* RECORDATORI: Les funcions de la llibreria string funcionen fins a trobar
-* el primer \0, el prints i writes també
-**/
-void dadesMeteorologiquesSerializer(char *serial, char *dades){
-    int j = 15;
-
-    for(int i = 0; i < (int)strlen(dades); i++){
-        serial[j] = dades[i];
-        j++;
-    }
-}
-
-int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
-
-    //Inicialització del serial
-    char serial[115];
-    char aux[10];
-    memset(aux, '\0', sizeof(aux));
-    memset(serial, '\0', sizeof(serial));
-    //Inicialització de la trama
-    osPacket message;
-    memset(message.origen, '\0', sizeof(message.origen));
-    message.tipus = '\0';
-    memset(message.dades, '\0', sizeof(message.dades));
-
-    // enviar nom estació
-    strcpy(message.origen,config->nom);
-    message.tipus = 'D';
-    //TODO: enviar tota la info
-    int index=0;
-    strcpy(message.dades,txtFile.data);
-    index = strlen(message.dades);
-    message.dades[index]='#';
-
-    strcat(message.dades,txtFile.hora);
-    index = strlen(message.dades);
-    message.dades[index]='#';
-
-    sprintf(aux, "%.1f%c", txtFile.temperatura, '\0');
-    strcat(message.dades,aux);
-    index = strlen(message.dades);
-    message.dades[index]='#';
-
-
-    sprintf(aux, "%d%c", txtFile.humitat, '\0');
-    strcat(message.dades,aux);
-    index = strlen(message.dades);
-    message.dades[index]='#';
-
-    sprintf(aux, "%.1f%c", txtFile.pressio_atmosferica, '\0');
-    strcat(message.dades,aux);
-    index = strlen(message.dades);
-    message.dades[index]='#';
-
-
-    sprintf(aux, "%.1f%c", txtFile.precipitacio, '\0');
-    strcat(message.dades,aux);
-    index = strlen(message.dades);
-    message.dades[index]='\0';
-
-
-    //Serialitzar
-    memcpy(serial, message.origen, sizeof(message.origen));
-    serial[14] =  message.tipus;
-    dadesMeteorologiquesSerializer(serial, message.dades);
-
-
-
-    write(socketFD, serial, 115);
-
-    //Esperem la resposta i la examinem
-    read(socketFD, serial, 115);
-    osPacket resposta;
-
-    //Inicialitzem
-    memset(resposta.origen, '\0', sizeof(resposta.origen));
-    resposta.tipus = '\0';
-    memset(resposta.dades, '\0', sizeof(resposta.dades));
-    //Deserialitzem
-    /** Lectura de trama **/
-    //Lectura de l'origen
-    strncpy(resposta.origen, serial, 4);
-    //Lectura tipus
-    resposta.tipus = serial[14];
-    //Lectura de dades
-    strncpy(resposta.dades, serial + 15, 100);
-    switch(resposta.tipus){
-        case 'Z':
-            //Error de trames
-            write(1, ERROR_DE_TRAMA, strlen(ERROR_DE_TRAMA));
-            break;
-        case 'B':
-            //Error de dades
-            write(1, ERROR_DE_DADES, strlen(ERROR_DE_DADES));
-            break;
-        default:
-            //Tot Correcte
-            break;
-    }
-
-
-    return 0;
-}
-
-int fileDetection(configDanny *config, int socket){
-    DIR *directori;
-    struct dirent *directoryFile;
-    char buff2[500];
-    char * buff = NULL;
-    int totalFilesMatching = 0;
-    txtFile txtFile;
-    memset(buff2, '\0', sizeof(buff2));
-
-    int bytes =sprintf(buff2, "$%s:\n", config->nom);
-    write(1, "\n", 1);
-    write(1, buff2, bytes);
-
-
-    //Obertura d'escriptori
-    /**
-    * buff guarda la direcció de la carpeta de dades que ha de llegir Danny
-    * Aquest bloc de sota afegim . + /carpeta + / + '\0'
-    **/
-    buff = (char *) malloc(sizeof(char)* (1 + (int)strlen(config->carpeta) + 2));
-
-    memset(buff, '\0', 1 + (int)strlen(config->carpeta) + 2);
-    buff[0] = '.';
-    strcat(buff, config->carpeta);
-    buff[strlen(buff)] = '/';
-    buff[strlen(buff)] = '\0';
-
-
-    write(1, "Testing...\n", sizeof("Testing...\n"));
-
-    directori = opendir(buff);
-
-
-    if( directori == NULL){
-        write(1, NO_SUCH_DIRECTORY, sizeof(NO_SUCH_DIRECTORY));
-        return -1;
-    } else {
-        if(readdir(directori) == NULL){
-            write(1, NO_FILES_FOUND, sizeof(NO_FILES_FOUND));
-            return 0;
-        }else{
-
-            while ((directoryFile = readdir(directori)) != NULL){
-                //regex
-                if(strstr(directoryFile->d_name, ".txt") != NULL ||
-                   strstr(directoryFile->d_name, ".jpg") != NULL){
-                    totalFilesMatching++;
-                }
-            }
-            if(totalFilesMatching == 0){
-                write(1, NO_FILES_FOUND, sizeof(NO_FILES_FOUND));
-                return 0;
-            }
-            bytes = sprintf(buff2, FILES_FOUND, totalFilesMatching);
-            write(1, buff2, bytes);
-
-            directori = opendir(buff);
-
-            //Mostrar el nom de tots els arxius
-            char *dirname = (char *) malloc(sizeof(char)* ( strlen(buff) + 1));
-            strcpy(dirname, buff);
-            struct dirent **arxius;
-            int q_arxius = scandir(dirname, &arxius, NULL, NULL);
-            for (int i = 0; i < q_arxius; i++) {
-                if(strstr(arxius[i]->d_name, ".txt") != NULL ||
-                   strstr(arxius[i]->d_name, ".jpg") != NULL){
-                    write(1, arxius[i]->d_name, strlen(arxius[i]->d_name));
-                    write(1, "\n", 1);
-                }
-                free(arxius[i]);
-            }
-            free(arxius);
-            free(dirname);
-
-            while ((directoryFile = readdir(directori)) != NULL){
-                //regex
-                if(strstr(directoryFile->d_name, ".txt") != NULL ||
-                   strstr(directoryFile->d_name, ".jpg") != NULL){
-                    write(1, "\n", 1);
-                    write(1, directoryFile->d_name, strlen(directoryFile->d_name));
-                    write(1, "\n", 1);
-
-                    //Parseig fitxer de dades txt
-                    if(strstr(directoryFile->d_name, ".txt") != NULL){
-                        char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name) + 1)));
-                        strcpy(fitxerActual, buff);
-                        strcat(fitxerActual,directoryFile->d_name);
-
-                        int fdFitxer = open(fitxerActual, O_RDONLY);
-
-                        //Comprovem que el fitxer existeixi
-                        if(fdFitxer < 0){
-                            memset(buff2, '\0', sizeof(buff2));
-                            bytes = sprintf(buff2, DATA_FILE_NOT_FOUND, directoryFile->d_name);
-                            write(1, buff2, bytes);
-                            exit(ERROR_RETURN);
-                        }
-
-
-                        char * aux;
-                        txtFile.data = llegirCadena(fdFitxer);
-                        txtFile.hora = llegirCadena(fdFitxer);
-
-                        aux = llegirCadena(fdFitxer);
-                        txtFile.temperatura = (float) atof(aux);
-                        free(aux);
-
-                        aux = llegirCadena(fdFitxer);
-                        txtFile.humitat = atoi(aux);
-                        free(aux);
-
-                        aux = llegirCadena(fdFitxer);
-                        txtFile.pressio_atmosferica = (float) atof(aux);
-                        free(aux);
-
-                        aux = llegirCadena(fdFitxer);
-                        txtFile.precipitacio = (float) atof(aux);
-                        free(aux);
-
-                        write(1, txtFile.data, strlen(txtFile.data));
-                        write(1, "\n", 1);
-                        write(1, txtFile.hora, strlen(txtFile.hora));
-                        write(1, "\n", 1);
-                        bytes = sprintf(buff2, "%.1f", txtFile.temperatura);
-                        write(1, buff2, bytes);
-                        write(1, "\n", 1);
-                        bytes = sprintf(buff2, "%d", txtFile.humitat);
-                        write(1, buff2, bytes);
-                        write(1, "\n", 1);
-                        bytes = sprintf(buff2, "%.1f", txtFile.pressio_atmosferica);
-                        write(1, buff2, bytes);
-                        write(1, "\n", 1);
-                        bytes = sprintf(buff2, "%.1f", txtFile.precipitacio);
-                        write(1, buff2, bytes);
-                        write(1, "\n", 1);
-
-
-                        enviarDadesClient(socket, txtFile, config);
-
-                        //Alliberar memòria i eliminar fitxer
-                        close(fdFitxer);
-
-                        //remove(fitxerActual);
-
-                        free(txtFile.data);
-                        free(txtFile.hora);
-                    }else{
-                        //TODO: JPG Parsing
-                    }
-
-                }
-            }
-        }
-    }
-    free(directoryFile);
-    free(directori);
-    free(buff);
-    return 0;
-}
-
-
-/*
-*Llegirem cadenas dels arxius caràcter a caràcter
-*
-*Args:
-* ·fd: File descriptor d'on volem llegir
-*
-*Retorna: La cadena llegida
-*/
-char * llegirCadena(int fd){
-    char *cadena = (char *) malloc(sizeof(char)*1);
-    char buff;
-    int lletres = 0;
-    int comprovacio;
-    while (1){
-        comprovacio = read(fd, &buff, sizeof(char));
-        if((buff == '\n')||(comprovacio <= 0)){
-            cadena = (char *) realloc(cadena, sizeof(char)*lletres);
-            cadena[lletres-1] = '\0';
-            return(cadena);
-        }else{
-            lletres++;
-            cadena = (char *) realloc(cadena, sizeof(char)*lletres);
-            cadena[lletres-1] = buff;
-        }
-    }
-}
-
-
-/*
-*Llegirem i guardarem la informació de l'arxiu de configuració de Danny
-*
-*Args:
-* ·nomFitxer: nom del fitxer d'on volem llegir
-*
-*Retorna: Struct amb la informació llegida.
-*/
-void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack){
-    int fitxer = open(nomFitxer, O_RDONLY);
-    char * aux;
-
-    //Comprovem que el fitxer existeixi
-    if(fitxer < 0){
-        char buff[100];
-        int bytes = sprintf(buff, FILE_ERROR, "Danny");
-        write(1, buff, bytes);
-        exit(ERROR_RETURN);
-    }
-
-
-    if(strcmp("Danny", process)==0){
-        //Llegim el nom de la estació
-        configDanny->nom = llegirCadena(fitxer);
-        //Llegim la carpeta on son els arxius
-        configDanny->carpeta =  llegirCadena(fitxer);
-        //Llegim el temps
-        aux = llegirCadena(fitxer);
-        configDanny->temps = atoi(aux);
-    }
-
-    /** Depenent de "a qui" li estiguem llegint la config ho guardem a configDanny o configJack **/
-    if(strcmp("Danny", process)==0){
-        configDanny->ipJack =  llegirCadena(fitxer);
-
-        aux = llegirCadena(fitxer);
-        configDanny->portJack= atoi(aux);
-    }else{
-        configJack->ipJack =  llegirCadena(fitxer);
-
-        aux = llegirCadena(fitxer);
-        configJack->portJack= atoi(aux);
-    }
-
-
-
-    if(strcmp("Danny", process)==0){
-        //Llegim les dades de Wendy
-        configDanny->ipWendy =  llegirCadena(fitxer);
-
-        aux = llegirCadena(fitxer);
-        configDanny->portWendy = atoi(aux);
-    }
-
-    free(aux);
-
-    //Tanquem el File Descriptor
-    close(fitxer);
-
-}
+#ifndef OVERLOOK_SYSTEM_FILEPARSER_H
+#define OVERLOOK_SYSTEM_FILEPARSER_H
+#define _DEFAULT_SOURCE
+
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include "./connectionUtils/socket.h"
+
+
+//Arxiu configuració Danny
+#define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
+#define ARGUMENT_ERROR "ERROR. NO S'HAN TROBAT SUFICIENTS ARGUMENTS DE PROGRAMA.\n"
+#define ERROR_RETURN -1
+
+//Arxius de dades Danny: .txt & .jpg
+#define FILES_FOUND "%d files found\n"
+#define DATA_FILE_NOT_FOUND "%s file not found\n"
+#define NO_FILES_FOUND "No files available\n\n"
+#define NO_SUCH_DIRECTORY "No such directory\n"
+
+//Jack - Parseig de dades Danny
+#define RECEIVE_DATA "Receiving data...\n"
+#define ERROR_DADES_DANNY -1
+
+typedef struct {
+    char origen[14];
+    char tipus;
+    char dades[100];
+} osPacket;
+
+typedef struct {
+    char * data;
+    char * hora;
+    float temperatura;
+    int humitat;
+    float pressio_atmosferica;
+    float precipitacio;
+} txtFile;
+
+//Estructura que guardarà la informació de configuració de Danny
+typedef struct configDanny{
+    char * nom;
+    char * carpeta;
+    int temps;
+    char * ipJack;
+    int portJack;
+    char * ipWendy;
+    int portWendy;
+}configDanny;
+
+
+//Estructura que guardarà la informació de configuració de Jack
+typedef struct configJack{
+    char * nom;
+    char * ipJack;
+    int portJack;
+}configJack;
+
+int parseigDadesDanny(osPacket dadesMeteorologiques);
+int llegirDadesClient(int fd, char *nomclient);
+void dadesMeteorologiquesSerializer(char *serial, char *dades);
+int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
+int fileDetection(configDanny *config, int socket);
+char * llegirCadena(int fd);
+void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);
+
+#endif //OVERLOOK_SYSTEM_FILEPARSER_H
