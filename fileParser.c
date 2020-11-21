@@ -69,13 +69,10 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
 }
 
 int llegirDadesClient(int socketFD){
-    //TODO: no entra aquí???
-    printf("Entro a llegir dades\n");
     char trama[sizeof(osPacket)], serial[115];
     osPacket dadesMeteorologiques, tramaResposta;
-    printf("ESPERANT DADA\n");
     int nBytes = read(socketFD, trama, sizeof(osPacket));
-    printf("DADA REBUDA: %s\n", trama);
+
     //Inicialització del serial
     memset(serial, '\0', sizeof(serial));
     //Inicialització de la trama
@@ -117,11 +114,9 @@ int llegirDadesClient(int socketFD){
     }
 
     //Serialitzar
-    //strcpy(serial, tramaResposta.origen);
     memcpy(serial, tramaResposta.origen, sizeof(tramaResposta.origen));
-    serial[sizeof(serial)] =  tramaResposta.tipus;
-    int tamany = sizeof(tramaResposta.dades);
-    strncat(serial, tramaResposta.dades, tamany);
+    serial[14] =  tramaResposta.tipus;
+    dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
 
     //Enviar
     write(socketFD, serial, sizeof(serial));
