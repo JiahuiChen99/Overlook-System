@@ -282,7 +282,7 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
             //Error de trames
             write(1, ERROR_DE_TRAMA, strlen(ERROR_DE_TRAMA));
             break;
-        case 'B':
+        case 'K':
             //Error de dades
             write(1, ERROR_DE_DADES, strlen(ERROR_DE_DADES));
             break;

@@ -11,6 +11,7 @@
 //strings
 #define START  "Starting Jack...\n"
 #define ERROR_FORK "Error al fer fork! \n"
+#define NEW_CONNECTION "New Connection: "
 
 //Variables globals
 int *socketsClients;
@@ -90,7 +91,6 @@ int main(int argc, char *argv[]) {
             write(1, buff, bytes);
             return -1;
         }
-        printf("TENIM UN NOU CLIENT amb socket: %d\n",socketsClients[socketCounter]);
 
         //Fork per tractar el socket
         forkIDsClients[forkCounter] = fork();
@@ -106,8 +106,9 @@ int main(int argc, char *argv[]) {
                 char *nomclient;
                 nomclient = protocolconnexioServidor(socketsClients[socketCounter]);
                 if (strcmp(nomclient, "ERROR") == 0) return 0;
-                bytes = sprintf(buff, NEW_CONNECTION, nomclient);
-                write(1, buff, bytes);
+                write(1, NEW_CONNECTION, strlen(NEW_CONNECTION));
+                write(1, nomclient, strlen(nomclient));
+                write(1, "\n", sizeof("\n"));
                 gestionarClient(socketsClients[socketCounter], nomclient);
                 return 0;
                 break;

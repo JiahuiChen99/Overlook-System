@@ -14,7 +14,6 @@
 #define ERROR_DE_TRAMA "ERROR EN EL FORMAT DE LA TRAMA!\n"
 #define ERROR_DE_DADES "ERROR EN EL FORMAT DE LES DADES!\n"
 
-#define NEW_CONNECTION "New Connection:%s\n"
 /* Lo ponemos en fileparser.h porque si no no compila
 typedef struct {
     char origen[14];
