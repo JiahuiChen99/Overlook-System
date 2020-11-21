@@ -70,7 +70,7 @@ int llegirDadesClient(int socketFD){
     osPacket dadesMeteorologiques, tramaResposta;
     printf("ESPERANT DADA\n");
     int nBytes = read(socketFD, trama, sizeof(osPacket));
-    printf("DADA REBUDA\n");
+    printf("DADA REBUDA: %s\n", trama);
     //Inicialització del serial
     memset(serial, '\0', sizeof(serial));
     //Inicialització de la trama
