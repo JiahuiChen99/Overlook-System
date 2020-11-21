@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
       write(1, buff, bytes);
       return -1;
     }
-    printf("TENIM UN NOU CLIENT\n");
-    socketCounter = socketCounter == 2 ? 0 : socketCounter+1;
+    printf("TENIM UN NOU CLIENT amb socket: %d\n",socketsClients[socketCounter]);
+
     //Fork per tractar el socket
     forkIDsClients[forkCounter] = fork();
     switch (forkIDsClients[forkCounter]) {
@@ -73,6 +73,7 @@ int main(int argc, char *argv[]) {
       default:
         //Pare
         forkCounter = forkCounter == 2 ? 0 : forkCounter+1;
+        socketCounter = socketCounter == 2 ? 0 : socketCounter+1;
       break;
     }
 
