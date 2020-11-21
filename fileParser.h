@@ -61,7 +61,7 @@ typedef struct configJack{
 }configJack;
 
 int parseigDadesDanny(osPacket dadesMeteorologiques);
-int llegirDadesClient(int fd);
+int llegirDadesClient(int fd, char *nomclient);
 void dadesMeteorologiquesSerializer(char *serial, char *dades);
 int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
 int fileDetection(configDanny *config, int socket);
