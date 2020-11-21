@@ -66,3 +66,23 @@ int gestionarClient(int fd){
     }while(finish < 0);
     return 0;
 }
+
+int protocolDesconnexio(int fd, char * nom){
+  char serial[115];
+  //Inicialització de la trama
+  osPacket message;
+  memset(message.origen, '\0', sizeof(message.origen));
+  message.tipus = '\0';
+  memset(message.dades, '\0', sizeof(message.dades));
+
+  // enviar nom estació
+  strcpy(message.origen, "DANNY");
+
+  //Serialitzar
+  memcpy(serial, message.origen, sizeof(message.origen));
+  serial[14] =  'Q';;
+  dadesMeteorologiquesSerializer(serial, nom);
+
+  //enviem
+  write(fd, serial, 115);
+}
