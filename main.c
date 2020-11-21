@@ -73,6 +73,7 @@ int main(int argc, char *argv[]) {
 
     //Iniciem la conexió amb el servidor Jack
     fdsocket = iniciarclient(config.ipJack, config.portJack);
+    protocolconnexioClient(fdsocket, config.nom);
     if(fdsocket < -1){
         //Display error i sortir
         return -1;

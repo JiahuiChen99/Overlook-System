@@ -159,7 +159,7 @@ int llegirDadesClient(int socketFD, char *nomclient){
         strncpy(dadesMeteorologiques.dades, trama + 15, 100);
 
         char buffer[20];
-        int bytes = sprintf(buffer, "%s%c", nomclient, '\0');
+        int bytes = sprintf(buffer, "%s\n%c", nomclient, '\0');
         write(1,buffer,bytes);
         int dadesStatus = parseigDadesDanny(dadesMeteorologiques);
 
