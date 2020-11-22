@@ -29,13 +29,8 @@ void signalhandler(int sigint){
 
             break;
         case SIGINT:
-            printf("|| %d\n", socketCounter);
-
 
             for(int i = 0; i < socketCounter; i++){
-
-                //Tanquem els canals de comunicació - sockets
-                printf("TANQUEM ELS SOCKETS\n");
                 close(socketsClients[i]);
                 shutdown(socketsClients[i], 2);
 
@@ -53,7 +48,6 @@ void signalhandler(int sigint){
         case SIGUSR1:
             for(int i = 0; i < (int)((int)sizeof(socketsClients)/(int)sizeof(int)); i++){
                 //Tanquem els canals de comunicació - sockets
-                printf("TANQUEM ELS SOCKETS en els fills\n");
                 close(socketsClients[i]);
                 shutdown(socketsClients[i], 2);
             }
