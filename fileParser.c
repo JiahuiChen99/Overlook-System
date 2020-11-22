@@ -139,8 +139,13 @@ int llegirDadesClient(int socketFD, char *nomclient){
     tramaResposta.tipus = '\0';
     memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
 
+
     //Control dels bytes rebuts, si es perden bytes durant la comunicació error
     if(nBytes != sizeof(osPacket) || trama[14] != 'D'){
+        if(trama[14] == 'Q'){
+            write(1, "Disconnecting Danny\n", sizeof("Disconnecting Danny\n"));
+            exit(0);
+        }
 
         //Popular la trama amb ERROR Trama
         strcpy(tramaResposta.origen, "JACK");
@@ -258,13 +263,22 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
     dadesMeteorologiquesSerializer(serial, message.dades);
 
 
+    int error = 0;
+    socklen_t len = sizeof (error);
+    getsockopt (socketFD, SOL_SOCKET, SO_ERROR, &error, &len);
 
-    if(write(socketFD, serial, 115) < 0){
-        /*if(){
-
-        }*/
-        printf("Error de connexió amb Jack %s\n", strerror(errno));
+    if(error != 0){
+        printf("---- %s ----\n", strerror(errno));
     }
+
+    int quinEsElCodi = write(socketFD, serial, 115);
+    printf(" ---------------- %d\n", quinEsElCodi);
+    /*if( <= 0){
+        if(){
+
+        }
+        printf("Error de connexió amb Jack %s\n", strerror(errno));
+    }*/
 
     //Esperem la resposta i la examinem
     read(socketFD, serial, 115);

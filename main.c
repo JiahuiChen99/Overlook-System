@@ -29,11 +29,14 @@ void signalhandler(int sigint){
 
             break;
         case SIGINT:
+            //Avisar Jack
+            protocolDesconnexio(fdsocket, config.nom);
+            close(fdsocket);
+
             free (config.nom);
             free (config.carpeta);
             free (config.ipJack);
             free (config.ipWendy);
-
 
             write(1, DISCONNECTION, sizeof(DISCONNECTION));
             exit(0);
