@@ -14,8 +14,11 @@
 #define NEW_CONNECTION "New Connection: "
 
 //Variables globals
+int generalSocketFD;
 int *socketsClients;
 int *forkIDsClients;
+int socketCounter = 0;
+int forkCounter = 0;
 
 void signalhandler(int sigint){
 
@@ -26,12 +29,36 @@ void signalhandler(int sigint){
 
             break;
         case SIGINT:
-            for(int i = 0; i < (int)((int)sizeof(socketsClients)/(int)sizeof(int)); i++){
-                //Petem els fills - forks
-                kill(forkIDsClients[i], SIGKILL);
+            printf("|| %d\n", socketCounter);
 
+
+            for(int i = 0; i < socketCounter; i++){
+
+                //Tanquem els canals de comunicació - sockets
+                printf("TANQUEM ELS SOCKETS\n");
+                close(socketsClients[i]);
+                shutdown(socketsClients[i], 2);
+
+
+                //Demanem als fills que tanquin
+                kill(forkIDsClients[i], SIGKILL);
             }
+
+            free(socketsClients);
+            close(generalSocketFD);
+            shutdown(generalSocketFD, 2);
             //Tanquem el servidor
+            exit(0);
+            break;
+        case SIGUSR1:
+            for(int i = 0; i < (int)((int)sizeof(socketsClients)/(int)sizeof(int)); i++){
+                //Tanquem els canals de comunicació - sockets
+                printf("TANQUEM ELS SOCKETS en els fills\n");
+                close(socketsClients[i]);
+                shutdown(socketsClients[i], 2);
+            }
+            close(generalSocketFD);
+            shutdown(generalSocketFD, 2);
             exit(0);
             break;
         default:
@@ -44,7 +71,7 @@ void signalhandler(int sigint){
 
 int main(int argc, char *argv[]) {
     configJack config;
-    int generalSocketFD, bytes;
+    int bytes;
     char buff[100];
 
     //Fem una ràpida comprovació d'arguments
@@ -72,10 +99,6 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, signalhandler);
 
     //Esperem a rebre
-    socketsClients = (int *) malloc(sizeof(int));
-    forkIDsClients = (int *) malloc(sizeof(int));
-    int socketCounter = 0;
-    int forkCounter = 0;
 
     while(1){
         //Fer un accept
@@ -85,12 +108,21 @@ int main(int argc, char *argv[]) {
         write(1, "$Jack:\n", sizeof("$Jack:\n"));
         write(1, "Waiting...\n", sizeof("Waiting...\n"));
 
-        socketsClients[socketCounter] = accept (generalSocketFD, (void *) &cli_addr, &length);
-        if (socketsClients[socketCounter] < 0){
+        int socketTemp = accept (generalSocketFD, (void *) &cli_addr, &length);
+        if (socketTemp < 0){
             bytes = sprintf(buff, ACCEPT_ERROR);
             write(1, buff, bytes);
             return -1;
         }
+        if(socketCounter == 0){
+            socketsClients = (int *) malloc(sizeof(int));
+            forkIDsClients = (int *) malloc(sizeof(int));
+        }else{
+            socketsClients = (int *) realloc(socketsClients,(forkCounter+1)*sizeof(int));
+            forkIDsClients = (int *) realloc(forkIDsClients,(socketCounter+1)*sizeof(int));
+        }
+
+        socketsClients[socketCounter] = socketTemp;
 
         //Fork per tractar el socket
         forkIDsClients[forkCounter] = fork();
@@ -117,8 +149,6 @@ int main(int argc, char *argv[]) {
                 //Pare
                 forkCounter++;
                 socketCounter++;
-                socketsClients = (int *) realloc(socketsClients,(forkCounter+1)*sizeof(int));
-                forkIDsClients = (int *) realloc(forkIDsClients,(socketCounter+1)*sizeof(int));
                 break;
         }
 
