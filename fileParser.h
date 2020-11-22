@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <errno.h>
 #include "./connectionUtils/socket.h"
 
 

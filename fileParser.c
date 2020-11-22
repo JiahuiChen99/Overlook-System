@@ -259,7 +259,12 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
 
 
 
-    write(socketFD, serial, 115);
+    if(write(socketFD, serial, 115) < 0){
+        /*if(){
+
+        }*/
+        printf("Error de connexió amb Jack %s\n", strerror(errno));
+    }
 
     //Esperem la resposta i la examinem
     read(socketFD, serial, 115);
@@ -437,7 +442,7 @@ int fileDetection(configDanny *config, int socket){
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);
 
-                        //remove(fitxerActual);
+                        remove(fitxerActual);
 
                         free(txtFile.data);
                         free(txtFile.hora);

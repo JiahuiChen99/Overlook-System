@@ -27,10 +27,10 @@ void signalhandler(int sigint){
             break;
         case SIGINT:
             for(int i = 0; i < (int)((int)sizeof(socketsClients)/(int)sizeof(int)); i++){
-                //Petem els fills
+                //Petem els fills - forks
                 kill(forkIDsClients[i], SIGKILL);
-            }
 
+            }
             //Tanquem el servidor
             exit(0);
             break;

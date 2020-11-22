@@ -30,6 +30,7 @@ typedef struct {
 int iniciarServidor(char *ip, int port);
 int iniciarclient(char *ip, int port);
 int gestionarClient(int fd, char *nomclient);
+int protocolDesconnexio(int fd, char * nom);
 int protocolconnexioClient(int fd, char * nom);
 char * protocolconnexioServidor(int fd);
 #endif
