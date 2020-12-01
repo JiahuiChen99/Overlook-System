@@ -82,8 +82,9 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     while(1){
-        sleep(config.temps);
-        raise(SIGALRM);
+        /*sleep(config.temps);
+        raise(SIGALRM);*/
+        alarm(config.temps);
     }
 
     return 0;
