@@ -366,6 +366,8 @@ int fileDetection(configDanny *config, int socket){
             bytes = sprintf(buff2, FILES_FOUND, totalFilesMatching);
             write(1, buff2, bytes);
 
+            //Close directori primer cop que l'obrim
+            closedir(directori);
             directori = opendir(buff);
 
             //Mostrar el nom de tots els arxius
@@ -465,7 +467,7 @@ int fileDetection(configDanny *config, int socket){
         }
     }
     free(directoryFile);
-    free(directori);
+    closedir(directori);
     free(buff);
     return 0;
 }
