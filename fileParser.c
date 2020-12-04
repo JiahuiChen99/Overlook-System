@@ -1,6 +1,19 @@
 #include "fileParser.h"
 
 
+void enviarALloyd(txtFile dadesDanny, char * origen){
+  //Esperem a tenir el torn a la memòria compartida
+  SEM_wait(semFills);
+  memComp.nomEstacio          = origen;
+  memComp.temperatura         = dadesDanny.temperatura;
+  memComp.humitat             = dadesDanny.humitat;
+  memComp.pressio_atmosferica = dadesDanny.pressio_atmosferica;
+  memComp.precipitacio        = dadesDanny.precipitacio;
+  SEM_signal(semJack);
+  SEM_wait(semJack);
+  SEM_signal(semFills);
+}
+
 int parseigDadesDanny(osPacket dadesMeteorologiques){
     int i, j, hashtagCounter, bytes;
     char *aux = NULL, buff[100];
@@ -116,6 +129,9 @@ int parseigDadesDanny(osPacket dadesMeteorologiques){
     bytes = sprintf(buff, "%.1f", dadesDanny.precipitacio);
     write(1, buff, bytes);
     write(1, "\n", 1);
+    //Enviar dades a Lloyd
+    enviarALloyd(dadesDanny, dadesMeteorologiques.origen);
+
 
     free(dadesDanny.data);
     free(dadesDanny.hora);
