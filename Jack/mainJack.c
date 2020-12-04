@@ -24,19 +24,33 @@ void signalhandler(int sigint){
 
     switch (sigint) {
         case SIGINT:
-            //La interrupció es propaga a tots els fills
-            if(parent_pid == getpid()){
-                close(socketTemp);
-                shutdown(socketTemp, 2);
-                printf("MATO PARE\n");
-            }else{
-                free(forkIDsClients);
-                close(generalSocketFD);
-                shutdown(generalSocketFD, 2);
-                printf("MATO FILL\n");
+            printf("|| %d\n", socketCounter);
+
+
+            for(int i = 0; i < socketCounter; i++){
+
+                //Tanquem els canals de comunicació - sockets
+                printf("TANQUEM ELS SOCKETS\n");
+                close(socketsClients[i]);
+                shutdown(socketsClients[i], 2);
+
+
+                //Demanem als fills que tanquin
+                kill(forkIDsClients[i], SIGKILL);
             }
 
             //Tanquem el servidor
+            exit(0);
+            break;
+        case SIGUSR1:
+            for(int i = 0; i < (int)((int)sizeof(socketsClients)/(int)sizeof(int)); i++){
+                //Tanquem els canals de comunicació - sockets
+                printf("TANQUEM ELS SOCKETS en els fills\n");
+                close(socketsClients[i]);
+                shutdown(socketsClients[i], 2);
+            }
+            close(generalSocketFD);
+            shutdown(generalSocketFD, 2);
             exit(0);
             break;
         default:
