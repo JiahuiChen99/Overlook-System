@@ -149,8 +149,22 @@ char * protocolconnexioServidor(int fd){
         strncpy(serial, tramaResposta.origen, tamany);
         serial[14]='O';
         dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
-        write(fd, serial, 115);
-        char *out = tramaRebuda.dades;
+        write(1, "ESCRIVIM EN EL SOCKET\n", sizeof("ESCRIVIM EN EL SOCKET\n"));
+        int bytesEnviats = write(fd, serial, 115);
+        printf("Hem enviat %d bytes - %s\n", bytesEnviats, tramaRebuda.dades);
+        char *out = (char *)malloc(sizeof(char)* (strlen(tramaRebuda.dades) + 1));
+        //out = tramaRebuda.dades;
+        //strcpy(out, tramaRebuda.dades);
+        /*for(int i = 0; i < (int) strlen(tramaRebuda.dades); i++){
+          out[i] = tramaRebuda.dades[i];
+          printf("- %c", out[i]);
+        }*/
+        //write(1, "\n", 1);
+
+        tamany = sizeof(out);
+        memset(out, '\0', tamany);
+        strcpy(out, tramaRebuda.dades);
+
         return(out);
     }else{
         tamany = sizeof("JACK");
