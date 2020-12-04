@@ -42,6 +42,14 @@ typedef struct {
     float precipitacio;
 } txtFile;
 
+typedef struct {
+    char * nomEstacio;
+    float temperatura;
+    int humitat;
+    float pressio_atmosferica;
+    float precipitacio;
+} infoLloyd;
+
 //Estructura que guardarà la informació de configuració de Danny
 typedef struct configDanny{
     char * nom;

@@ -267,8 +267,12 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
     socklen_t len = sizeof (error);
     getsockopt (socketFD, SOL_SOCKET, SO_ERROR, &error, &len);
 
-    int quinEsElCodi = write(socketFD, serial, 115);
+    if(error != 0){
+        printf("---- %s ----\n", strerror(errno));
+    }
 
+    int quinEsElCodi = write(socketFD, serial, 115);
+    printf(" ---------------- %d\n", quinEsElCodi);
     /*if( <= 0){
         if(){
 
