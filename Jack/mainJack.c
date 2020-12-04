@@ -15,44 +15,28 @@
 
 //Variables globals
 int generalSocketFD;
-int *socketsClients;
+int socketTemp;
 int *forkIDsClients;
-int socketCounter = 0;
 int forkCounter = 0;
+pid_t parent_pid;
 
 void signalhandler(int sigint){
 
     switch (sigint) {
-
-        case SIGALRM:
-
-
-            break;
         case SIGINT:
-
-            for(int i = 0; i < socketCounter; i++){
-                close(socketsClients[i]);
-                shutdown(socketsClients[i], 2);
-
-
-                //Demanem als fills que tanquin
-                kill(forkIDsClients[i], SIGKILL);
+            //La interrupció es propaga a tots els fills
+            if(parent_pid == getpid()){
+                close(socketTemp);
+                shutdown(socketTemp, 2);
+                printf("MATO PARE\n");
+            }else{
+                free(forkIDsClients);
+                close(generalSocketFD);
+                shutdown(generalSocketFD, 2);
+                printf("MATO FILL\n");
             }
 
-            free(socketsClients);
-            close(generalSocketFD);
-            shutdown(generalSocketFD, 2);
             //Tanquem el servidor
-            exit(0);
-            break;
-        case SIGUSR1:
-            for(int i = 0; i < (int)((int)sizeof(socketsClients)/(int)sizeof(int)); i++){
-                //Tanquem els canals de comunicació - sockets
-                close(socketsClients[i]);
-                shutdown(socketsClients[i], 2);
-            }
-            close(generalSocketFD);
-            shutdown(generalSocketFD, 2);
             exit(0);
             break;
         default:
@@ -76,6 +60,8 @@ int main(int argc, char *argv[]) {
         exit(ERROR_RETURN);
     }
 
+    parent_pid = getpid();
+
     write(1, START, strlen(START));
 
 
@@ -88,6 +74,7 @@ int main(int argc, char *argv[]) {
     //Iniciem el servidor
     generalSocketFD = iniciarServidor(config.ipJack, config.portJack);
 
+    forkIDsClients = (int *) malloc(sizeof(int));
 
     //Reassingem interrupcions
     signal(SIGINT, signalhandler);
@@ -102,21 +89,17 @@ int main(int argc, char *argv[]) {
         write(1, "$Jack:\n", sizeof("$Jack:\n"));
         write(1, "Waiting...\n", sizeof("Waiting...\n"));
 
-        int socketTemp = accept (generalSocketFD, (void *) &cli_addr, &length);
+        socketTemp = accept (generalSocketFD, (void *) &cli_addr, &length);
         if (socketTemp < 0){
             bytes = sprintf(buff, ACCEPT_ERROR);
             write(1, buff, bytes);
             return -1;
         }
-        if(socketCounter == 0){
-            socketsClients = (int *) malloc(sizeof(int));
-            forkIDsClients = (int *) malloc(sizeof(int));
-        }else{
-            socketsClients = (int *) realloc(socketsClients,(forkCounter+1)*sizeof(int));
-            forkIDsClients = (int *) realloc(forkIDsClients,(socketCounter+1)*sizeof(int));
-        }
 
-        socketsClients[socketCounter] = socketTemp;
+        printf("El nou client te socket %d\n", socketTemp);
+
+        forkIDsClients = (int *) realloc(forkIDsClients,(forkCounter+1)*sizeof(int));
+
 
         //Fork per tractar el socket
         forkIDsClients[forkCounter] = fork();
@@ -130,19 +113,19 @@ int main(int argc, char *argv[]) {
                 ;
                 //TODO: Afegir el nom del client
                 char *nomclient;
-                nomclient = protocolconnexioServidor(socketsClients[socketCounter]);
+                nomclient = protocolconnexioServidor(socketTemp);
                 if (strcmp(nomclient, "ERROR") == 0) return 0;
                 write(1, NEW_CONNECTION, strlen(NEW_CONNECTION));
                 write(1, nomclient, strlen(nomclient));
                 write(1, "\n", sizeof("\n"));
-                gestionarClient(socketsClients[socketCounter], nomclient);
+                gestionarClient(socketTemp, nomclient);
+                //Allibrerar nomclient
                 return 0;
                 break;
 
             default:
                 //Pare
                 forkCounter++;
-                socketCounter++;
                 break;
         }
 
