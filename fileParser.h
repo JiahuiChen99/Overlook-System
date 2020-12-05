@@ -9,8 +9,10 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "./connectionUtils/socket.h"
-#include "semaphore_v2.h"
+//#include "./connectionUtils/socket.h"
+#include "../dannyJackComm/dannyJackComm.h"
+//#include "semaphore_v2.h"
+
 //#include "tipus.h"
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
@@ -26,30 +28,6 @@
 //Jack - Parseig de dades Danny
 #define RECEIVE_DATA "Receiving data...\n"
 #define ERROR_DADES_DANNY -1
-
-
-typedef struct {
-    char origen[14];
-    char tipus;
-    char dades[100];
-} osPacket;
-
-typedef struct {
-    char * data;
-    char * hora;
-    float temperatura;
-    int humitat;
-    float pressio_atmosferica;
-    float precipitacio;
-} txtFile;
-
-typedef struct {
-    char * nomEstacio;
-    float temperatura;
-    int humitat;
-    float pressio_atmosferica;
-    float precipitacio;
-} infoLloyd;
 
 //Estructura que guardarà la informació de configuració de Danny
 typedef struct configDanny{
@@ -71,11 +49,7 @@ typedef struct configJack{
 }configJack;
 
 
-void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphore semFills, infoLloyd * memComp);
-int parseigDadesDanny(osPacket dadesMeteorologiques, semaphore semJack, semaphore semFills, infoLloyd * memComp);
-int llegirDadesClient(int fd, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp);
-void dadesMeteorologiquesSerializer(char *serial, char *dades);
-int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
+
 int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);

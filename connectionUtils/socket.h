@@ -4,8 +4,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include "../fileParser.h"
-#include "../semaphore_v2.h"
+//#include "../fileParser.h"
+//#include "../semaphore_v2.h"
+
 
 //#include "../tipus.h"
 #define IP_ERROR "%s no es una adreça IP vàlida\n"
@@ -31,7 +32,6 @@ typedef struct {
 */
 int iniciarServidor(char *ip, int port);
 int iniciarclient(char *ip, int port);
-int gestionarClient(int fd, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp);
 int protocolDesconnexio(int fd, char * nom);
 int protocolconnexioClient(int fd, char * nom);
 char * protocolconnexioServidor(int fd);
