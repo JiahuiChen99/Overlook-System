@@ -5,7 +5,9 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include "../fileParser.h"
+#include "../semaphore_v2.h"
 
+//#include "../tipus.h"
 #define IP_ERROR "%s no es una adreça IP vàlida\n"
 #define BIND_ERROR "Error en fer el Bind!\n"
 #define LISTEN_ERROR "Error en fer el Listen!\n"
@@ -29,7 +31,7 @@ typedef struct {
 */
 int iniciarServidor(char *ip, int port);
 int iniciarclient(char *ip, int port);
-int gestionarClient(int fd, char *nomclient);
+int gestionarClient(int fd, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp);
 int protocolDesconnexio(int fd, char * nom);
 int protocolconnexioClient(int fd, char * nom);
 char * protocolconnexioServidor(int fd);

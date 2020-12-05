@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <sys/shm.h>
 
 #include "../fileParser.h"
 #include "../connectionUtils/socket.h"
@@ -12,6 +13,8 @@
 #define START  "Starting Jack...\n"
 #define ERROR_FORK "Error al fer fork! \n"
 #define NEW_CONNECTION "New Connection: "
+#define SEM_CREATE_ERROR "Error en crear el semàfor \n"
+#define ERR_OUT -1
 
 //Variables globals
 int generalSocketFD;
@@ -25,45 +28,47 @@ semaphore semJack;
 int shm;
 infoLloyd * memComp;
 
-void getMemoriaCompartida(){
-  shm = shmget(ftok("lloyd.c", "a"), sizeof(infoLloyd), IPC_CREAT | IPD_EXCL | 0600);
+int getMemoriaCompartida(){
+  shm = shmget(ftok("lloyd.c", 'a'), sizeof(infoLloyd), IPC_CREAT | IPC_EXCL | 0600);
   if(shm < 0){
     perror("shmget");
     return ERR_OUT;
   }
   //shmat
-  memComp = shmat(shm, 0, 0)
+  memComp = shmat(shm, 0, 0);
   if (memComp == NULL){
     perror("shmat");
     return ERR_OUT;
   }
-
+  return 0;
 }
 
-void inicialitzaSemafors(){
-  int s = SEM_constructor_with_name(semJack, "JackLloyd");
+int inicialitzaSemafors(){
+  int s = SEM_constructor_with_name(&semJack, 'J');
   if (s == 0){
-    write(1, SEM_CREATE_ERROR);
+    write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
     return ERR_OUT;
   }
 
-  int s = SEM_constructor_with_name(semFills, "JackFills");
+  s = SEM_constructor_with_name(&semFills, 'F');
   if (s == 0){
-    write(1, SEM_CREATE_ERROR);
+    write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
     return ERR_OUT;
   }
 
-  s = SEM_init(semFills, 1);
+  s = SEM_init(&semFills, 1);
   if (s == 0){
-    write(1, SEM_CREATE_ERROR);
+    write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
     return ERR_OUT;
   }
+
+  return 0;
 }
 
 void destrueixSemafors(){
   //Destruim semàfor
-  SEM_destructor(semJack);
-  SEM_destructor(semFills);
+  SEM_destructor(&semJack);
+  SEM_destructor(&semFills);
 }
 
 void signalhandler(int sigint){
@@ -92,11 +97,11 @@ void signalhandler(int sigint){
             exit(0);
             break;
         default:
-          for(int i = 0; i < (int)((int)sizeof(socketsClients)/(int)sizeof(int)); i++){
+          for(int i = 0; i < (int)((int)sizeof(forkIDsClients)/(int)sizeof(int)); i++){
                 //Tanquem els canals de comunicació - sockets
                 printf("TANQUEM ELS SOCKETS en els fills\n");
-                close(socketsClients[i]);
-                shutdown(socketsClients[i], 2);
+                //close(socketsClients[i]);
+                //shutdown(socketsClients[i], 2);
             }
             close(generalSocketFD);
             shutdown(generalSocketFD, 2);
@@ -183,7 +188,7 @@ int main(int argc, char *argv[]) {
                 write(1, NEW_CONNECTION, strlen(NEW_CONNECTION));
                 write(1, nomclient, strlen(nomclient));
                 write(1, "\n", sizeof("\n"));
-                gestionarClient(socketTemp, nomclient);
+                gestionarClient(socketTemp, nomclient, semJack, semFills, memComp);
                 //Allibrerar nomclient
                 return 0;
                 break;

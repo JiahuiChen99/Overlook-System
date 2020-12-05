@@ -10,8 +10,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "./connectionUtils/socket.h"
-
-
+#include "semaphore_v2.h"
+//#include "tipus.h"
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
 #define ARGUMENT_ERROR "ERROR. NO S'HAN TROBAT SUFICIENTS ARGUMENTS DE PROGRAMA.\n"
@@ -26,6 +26,7 @@
 //Jack - Parseig de dades Danny
 #define RECEIVE_DATA "Receiving data...\n"
 #define ERROR_DADES_DANNY -1
+
 
 typedef struct {
     char origen[14];
@@ -69,8 +70,10 @@ typedef struct configJack{
     int portJack;
 }configJack;
 
-int parseigDadesDanny(osPacket dadesMeteorologiques);
-int llegirDadesClient(int fd, char *nomclient);
+
+void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphore semFills, infoLloyd * memComp);
+int parseigDadesDanny(osPacket dadesMeteorologiques, semaphore semJack, semaphore semFills, infoLloyd * memComp);
+int llegirDadesClient(int fd, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp);
 void dadesMeteorologiquesSerializer(char *serial, char *dades);
 int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
 int fileDetection(configDanny *config, int socket);

@@ -59,10 +59,10 @@ int iniciarclient(char *ip, int port){
     return socketFD;
 }
 
-int gestionarClient(int fd, char *nomclient){
+int gestionarClient(int fd, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp){
     int finish=1;
     do{
-        finish = llegirDadesClient(fd, nomclient);
+        finish = llegirDadesClient(fd, nomclient, semJack, semFills, memComp);
     }while(finish >= 0);
     return 0;
 }
