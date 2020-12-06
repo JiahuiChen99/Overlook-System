@@ -6,8 +6,8 @@
 #include <signal.h>
 #include <sys/shm.h>
 
-#include "../fileParser.h"
 #include "../connectionUtils/socket.h"
+#include "../fileParser.h"
 
 //strings
 #define START  "Starting Jack...\n"
@@ -29,46 +29,46 @@ int shm;
 infoLloyd * memComp;
 
 int getMemoriaCompartida(){
-  shm = shmget(ftok("lloyd.c", 'a'), sizeof(infoLloyd), IPC_CREAT | IPC_EXCL | 0600);
-  if(shm < 0){
-    perror("shmget");
-    return ERR_OUT;
-  }
-  //shmat
-  memComp = shmat(shm, 0, 0);
-  if (memComp == NULL){
-    perror("shmat");
-    return ERR_OUT;
-  }
-  return 0;
+    shm = shmget(ftok("lloyd.c", 'a'), sizeof(infoLloyd), IPC_CREAT | IPC_EXCL | 0600);
+    if(shm < 0){
+        perror("shmget");
+        return ERR_OUT;
+    }
+    //shmat
+    memComp = shmat(shm, 0, 0);
+    if (memComp == NULL){
+        perror("shmat");
+        return ERR_OUT;
+    }
+    return 0;
 }
 
 int inicialitzaSemafors(){
-  int s = SEM_constructor_with_name(&semJack, 'J');
-  if (s == 0){
-    write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
-    return ERR_OUT;
-  }
+    int s = SEM_constructor_with_name(&semJack, 'J');
+    if (s == 0){
+        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
+        return ERR_OUT;
+    }
 
-  s = SEM_constructor_with_name(&semFills, 'F');
-  if (s == 0){
-    write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
-    return ERR_OUT;
-  }
+    s = SEM_constructor_with_name(&semFills, 'F');
+    if (s == 0){
+        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
+        return ERR_OUT;
+    }
 
-  s = SEM_init(&semFills, 1);
-  if (s == 0){
-    write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
-    return ERR_OUT;
-  }
+    s = SEM_init(&semFills, 1);
+    if (s == 0){
+        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
+        return ERR_OUT;
+    }
 
-  return 0;
+    return 0;
 }
 
 void destrueixSemafors(){
-  //Destruim semàfor
-  SEM_destructor(&semJack);
-  SEM_destructor(&semFills);
+    //Destruim semàfor
+    SEM_destructor(&semJack);
+    SEM_destructor(&semFills);
 }
 
 void signalhandler(int sigint){
@@ -97,7 +97,7 @@ void signalhandler(int sigint){
             exit(0);
             break;
         default:
-          for(int i = 0; i < (int)((int)sizeof(forkIDsClients)/(int)sizeof(int)); i++){
+            for(int i = 0; i < (int)((int)sizeof(forkIDsClients)/(int)sizeof(int)); i++){
                 //Tanquem els canals de comunicació - sockets
                 printf("TANQUEM ELS SOCKETS en els fills\n");
                 //close(socketsClients[i]);
@@ -153,13 +153,11 @@ int main(int argc, char *argv[]) {
 
     while(1){
         //Fer un accept
-        struct sockaddr_in cli_addr;
-        socklen_t length = sizeof (cli_addr);
 
         write(1, "$Jack:\n", sizeof("$Jack:\n"));
         write(1, "Waiting...\n", sizeof("Waiting...\n"));
 
-        socketTemp = accept (generalSocketFD, (void *) &cli_addr, &length);
+        socketTemp = acceptarConnexio(generalSocketFD);
         if (socketTemp < 0){
             bytes = sprintf(buff, ACCEPT_ERROR);
             write(1, buff, bytes);

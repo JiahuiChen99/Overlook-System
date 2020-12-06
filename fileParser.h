@@ -9,11 +9,9 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
-//#include "./connectionUtils/socket.h"
-#include "../dannyJackComm/dannyJackComm.h"
-//#include "semaphore_v2.h"
 
-//#include "tipus.h"
+#include "./structs.h"
+
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
 #define ARGUMENT_ERROR "ERROR. NO S'HAN TROBAT SUFICIENTS ARGUMENTS DE PROGRAMA.\n"
@@ -25,33 +23,13 @@
 #define NO_FILES_FOUND "No files available\n\n"
 #define NO_SUCH_DIRECTORY "No such directory\n"
 
-//Jack - Parseig de dades Danny
-#define RECEIVE_DATA "Receiving data...\n"
-#define ERROR_DADES_DANNY -1
-
-//Estructura que guardarà la informació de configuració de Danny
-typedef struct configDanny{
-    char * nom;
-    char * carpeta;
-    int temps;
-    char * ipJack;
-    int portJack;
-    char * ipWendy;
-    int portWendy;
-}configDanny;
-
-
-//Estructura que guardarà la informació de configuració de Jack
-typedef struct configJack{
-    char * nom;
-    char * ipJack;
-    int portJack;
-}configJack;
-
-
 
 int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);
+//Danny enviant a Jack
+//Es crida desde fileParser
+int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
+
 
 #endif //OVERLOOK_SYSTEM_FILEPARSER_H

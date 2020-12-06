@@ -1,6 +1,3 @@
-#ifndef _MOD_SEMAPHORE_H_
-#define _MOD_SEMAPHORE_H_
-
 /////////////////////////////////////////////////////////////////////////////
 /**
  *  @file   semaphore.h
@@ -15,47 +12,7 @@
  */
 //////////////////////////////////////////////////////////////////////////////
 
-//#define __USE_SVID
-#define __USE_XOPEN
-
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-#include <assert.h>
-#include <stdlib.h>
-
-/**
- * Union which must be explicitly declared by the application.
- * It is the fourth argument of the semctl function, and it is
- * optional, depending upon the operation requested.
- */
-/*union semun
-{
-	int val;
-	struct semid_ds * buf;
-	unsigned short  * array;
-};*/
-
-/**
- * Struct used to indicate to a semaphore which operation is
- * going to be applied (number of the semaphore, operation and
- * flags).
- */
-typedef struct
-{
-    unsigned short int sem_num;
-    short int sem_op;
-    short int sem_flg;
-} sembuf;
-
-/**
- * Struct with all the info about a semaphore. In this case,
- * only the id is specified.
- */
-typedef struct
-{
-    int shmid;
-} semaphore;
+#include "semaphore_v2.h"
 
 /**
  * This file provides a simple but useful abstraction for
@@ -75,7 +32,13 @@ typedef struct
  * @return int The result of the operation executed
  */
 
-int SEM_constructor_with_name(semaphore * sem, key_t key);
+int SEM_constructor_with_name(semaphore * sem, key_t key) {
+
+    // IPC_CREAT: if this is specified, and a semaphore with the given key does not exist, it is created, otherwise the call returns with -1, setting the appropriate errno value.
+    sem->shmid = semget(key, 1, IPC_CREAT | 0644);
+    if (sem->shmid < 0) return sem->shmid;
+    return 0;
+}
 
 
 
@@ -90,7 +53,13 @@ int SEM_constructor_with_name(semaphore * sem, key_t key);
  * @param sem The var where semaphore will be created
  * @return int The result of the operation executed
  */
-int SEM_constructor (semaphore * sem);
+int SEM_constructor (semaphore * sem)
+{
+	assert (sem != NULL);
+	sem->shmid = semget (IPC_PRIVATE, 1, IPC_CREAT | 0600);
+	if (sem->shmid < 0) return sem->shmid;
+    return 0;
+}
 
 /**
  * Method which initializes a semaphore
@@ -99,14 +68,23 @@ int SEM_constructor (semaphore * sem);
  *          initialized
  * @return int The result of the operation executed
  */
-int SEM_init (const semaphore * sem, const int v);
+int SEM_init (const semaphore * sem, const int v)
+{
+	unsigned short _v[1] = {v};
+	assert (sem != NULL);
+	return semctl (sem->shmid, 0, SETALL, _v);
+}
 
 /**
  * Method to destroy a semaphore
  * @param sem The semaphore to destroy
  * @return int The result of the operation executed
  */
-int SEM_destructor (const semaphore * sem);
+int SEM_destructor (const semaphore * sem)
+{
+	assert (sem != NULL);
+	return semctl (sem->shmid, 0, IPC_RMID, NULL);
+}
 
 /**
  * Method to apply a wait operation, in order to warn that a
@@ -116,7 +94,13 @@ int SEM_destructor (const semaphore * sem);
  * @param sem The semaphore where wait operation will be applied
  * @return int The result of the operation executed
  */
-int SEM_wait (const semaphore * sem);
+int SEM_wait (const semaphore * sem)
+{
+	struct sembuf o = {0, -1, SEM_UNDO};
+
+	assert (sem != NULL);
+	return semop(sem->shmid, &o, 1);
+}
 
 /**
  * Method to apply a signal operation, in order to warn that a
@@ -128,6 +112,9 @@ int SEM_wait (const semaphore * sem);
  *            applied
  * @return int The result of the operation executed
  */
-int SEM_signal (const semaphore * sem);
-
-#endif /* _MOD_SEMAPHORE_H_ */
+int SEM_signal (const semaphore * sem)
+{
+	struct sembuf o = {0, 1, SEM_UNDO};
+	assert (sem != NULL);
+	return semop(sem->shmid, &o, 1);
+}
