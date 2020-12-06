@@ -164,8 +164,6 @@ int main(int argc, char *argv[]) {
             return -1;
         }
 
-        printf("El nou client te socket %d\n", socketTemp);
-
         forkIDsClients = (int *) realloc(forkIDsClients,(forkCounter+1)*sizeof(int));
 
 
@@ -186,8 +184,8 @@ int main(int argc, char *argv[]) {
                 write(1, NEW_CONNECTION, strlen(NEW_CONNECTION));
                 write(1, nomclient, strlen(nomclient));
                 write(1, "\n", sizeof("\n"));
-                gestionarClient(socketTemp, nomclient, semJack, semFills, memComp);
-                //Allibrerar nomclient
+                gestionarClient(socketTemp, semJack, semFills, memComp);
+                //TODO: Allibrerar nomclient
                 return 0;
                 break;
 

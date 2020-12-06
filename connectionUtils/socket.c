@@ -1,15 +1,15 @@
 #include "socket.h"
 
-int gestionarClient(int fd, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp){
+int gestionarClient(int fd, semaphore semJack, semaphore semFills, infoLloyd * memComp){
     int finish=1;
     do{
-        finish = llegirDadesClient(fd, nomclient, semJack, semFills, memComp);
+        finish = llegirDadesClient(fd, semJack, semFills, memComp);
     }while(finish >= 0);
     return 0;
 }
 
 
-int llegirDadesClient(int socketFD, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp){
+int llegirDadesClient(int socketFD, semaphore semJack, semaphore semFills, infoLloyd * memComp){
     char trama[sizeof(osPacket)], serial[115];
     osPacket dadesMeteorologiques, tramaResposta;
 
@@ -43,14 +43,15 @@ int llegirDadesClient(int socketFD, char *nomclient, semaphore semJack, semaphor
         //Lectura de l'origen
         strncpy(dadesMeteorologiques.origen, trama, 14);
         write(1, dadesMeteorologiques.origen, strlen(dadesMeteorologiques.origen));
+        write(1, "\n", 1);
         //Lectura tipus
         dadesMeteorologiques.tipus = trama[14];
         //Lectura de dades
         strncpy(dadesMeteorologiques.dades, trama + 15, 100);
 
-        char buffer[20];
+        /*char buffer[20];
         int bytes = sprintf(buffer, "%s\n%c", nomclient, '\0');
-        write(1,buffer,bytes);
+        write(1,buffer,bytes);*/
         int dadesStatus = parseigDadesDanny(dadesMeteorologiques, semJack, semFills, memComp);
 
         if(dadesStatus == ERROR_DADES_DANNY){
@@ -266,7 +267,6 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
 
     write(socketFD, serial, 115);
 
-
     //Esperem la resposta i la examinem
     read(socketFD, serial, 115);
     osPacket resposta;
@@ -473,17 +473,9 @@ char * protocolconnexioServidor(int fd){
         strncpy(serial, tramaResposta.origen, tamany);
         serial[14]='O';
         dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
-        write(1, "ESCRIVIM EN EL SOCKET\n", sizeof("ESCRIVIM EN EL SOCKET\n"));
-        int bytesEnviats = write(fd, serial, 115);
-        printf("Hem enviat %d bytes - %s\n", bytesEnviats, tramaRebuda.dades);
+
+        write(fd, serial, 115);
         char *out = (char *)malloc(sizeof(char)* (strlen(tramaRebuda.dades) + 1));
-        //out = tramaRebuda.dades;
-        //strcpy(out, tramaRebuda.dades);
-        /*for(int i = 0; i < (int) strlen(tramaRebuda.dades); i++){
-          out[i] = tramaRebuda.dades[i];
-          printf("- %c", out[i]);
-        }*/
-        //write(1, "\n", 1);
 
         tamany = sizeof(out);
         memset(out, '\0', tamany);

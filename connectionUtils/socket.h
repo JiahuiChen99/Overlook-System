@@ -33,12 +33,12 @@
 
 //Sockets utils
 //Cridar desde mainJack.c
-int gestionarClient(int fd, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp);
+int gestionarClient(int fd, semaphore semJack, semaphore semFills, infoLloyd * memComp);
 
 //Jack rebent Danny
 //Es crida desde gestionarClient
 int parseigDadesDanny(osPacket dadesMeteorologiques, semaphore semJack, semaphore semFills, infoLloyd * memComp);
-int llegirDadesClient(int fd, char *nomclient, semaphore semJack, semaphore semFills, infoLloyd * memComp);
+int llegirDadesClient(int fd, semaphore semJack, semaphore semFills, infoLloyd * memComp);
 
 
 //Es crida desde aquí dins
