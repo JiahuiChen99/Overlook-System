@@ -14,6 +14,7 @@
 //Llibreries internes
 #include "../fileParser.h"
 #include "../semaphore_v2.h"
+#include "../structs.h"
 
 //Define strings
 #define START "Starting Lloyd...\n"
@@ -57,7 +58,7 @@ void signalhandler(int signum){
 
 int buscaEstacio(char * estacio, int numEstacions){
     for (int i = 0; (i < numEstacions); i++){
-        if(strcmp(estacio, estacions[i].nom) == 0){
+        if(strcmp(estacio, estacions[i].nomEstacio) == 0){
             return (i);
         }
     }
@@ -152,7 +153,7 @@ int main(){
             }else{
                 //Fer un guarda dades acumulades
                 numDades[estacio]++;
-                infoAcumulada[estacio] = (infoLloyd *) realloc(infoAcumulada, sizeof(infoLloyd)*numDades[estacio]);
+                infoAcumulada = (infoLloyd *) realloc(infoAcumulada, sizeof(infoLloyd)*numDades[estacio]);
                 guardaDadesAcumulades(estacio);
                 calculaMitjana(estacio);
             }

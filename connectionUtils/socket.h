@@ -48,6 +48,10 @@ void dadesMeteorologiquesSerializer(char *serial, char *dades);
 void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphore semFills, infoLloyd * memComp);
 
 
+//Danny enviant a Jack
+//Es crida desde fileParser
+int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
+
 int iniciarServidor(char *ip, int port);
 int iniciarclient(char *ip, int port);
 int protocolDesconnexio(int fd, char * nom);

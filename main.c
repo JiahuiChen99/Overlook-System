@@ -25,7 +25,6 @@ void signalhandler(int sigint){
 
         case SIGALRM:
             //Comprovar la carpeta i mirar si tenim arxius de text
-            printf("El signal funciona\n");
             fileDetection(&config, fdsocket);
 
             break;

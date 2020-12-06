@@ -11,6 +11,7 @@
 #include <errno.h>
 
 #include "./structs.h"
+#include "./connectionUtils/socket.h"
 
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
@@ -27,9 +28,6 @@
 int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);
-//Danny enviant a Jack
-//Es crida desde fileParser
-int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config);
 
 
 #endif //OVERLOOK_SYSTEM_FILEPARSER_H
