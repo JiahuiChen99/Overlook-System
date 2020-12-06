@@ -2,7 +2,7 @@
 #define STRUCTS_H_
 
 typedef struct {
-    char * nomEstacio;
+    char ** nomEstacio;
     float temperatura;
     int humitat;
     float pressio_atmosferica;

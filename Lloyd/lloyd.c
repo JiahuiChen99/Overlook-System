@@ -26,7 +26,7 @@
 semaphore semJack;
 int shm, shmNom;
 infoLloyd * memComp;
-char * nomMemComp;
+char ** nomMemComp; //Asteric 1 -> Memoria compartida. Asterisc 2 -> Array dinàmic
 infoLloyd * estacions; //Array de les mitjanes de estacions
 infoLloyd * infoAcumulada; //Matriu on guardem totes les instàncies de info que ens arriben
 int * numDades; //Guardem quantes dades té cada array de infoAcumulada
@@ -61,7 +61,7 @@ void signalhandler(int signum){
 
 int buscaEstacio(char * estacio, int numEstacions){
     for (int i = 0; (i < numEstacions); i++){
-        if(strcmp(estacio, estacions[i].nomEstacio) == 0){
+        if(strcmp(estacio, *estacions[i].nomEstacio) == 0){
             return (i);
         }
     }
@@ -79,11 +79,11 @@ void calculaMitjana(int estacio){
 void guardaDadesMitjana(int estacio){
     //TODO:Fer-ho amb strcpy
     printf("LLOYD: Guardant dades mitjana\n");
-    estacions[estacio].nomEstacio = (char *) malloc(strlen(nomMemComp) + 1);
+    *estacions[estacio].nomEstacio = (char *) malloc(strlen(*nomMemComp) + 1);
     printf("1\n");
-    memset(estacions[estacio].nomEstacio, '\0', strlen(nomMemComp) + 1);
+    memset(*estacions[estacio].nomEstacio, '\0', strlen(*nomMemComp) + 1);
     printf("2\n");
-    strcpy(estacions[estacio].nomEstacio, nomMemComp);
+    strcpy(*estacions[estacio].nomEstacio, *nomMemComp);
     printf("3\n");
     estacions[estacio].temperatura = memComp->temperatura;
     estacions[estacio].humitat = memComp->humitat;
@@ -95,9 +95,9 @@ void guardaDadesMitjana(int estacio){
 void guardaDadesAcumulades(int estacio){
     //TODO:Fer-ho amb strcpy
     printf("LLOYD: Guardant dades acumulades\n");
-    infoAcumulada[estacio].nomEstacio = (char *) malloc(strlen(nomMemComp) + 1);
-    memset(infoAcumulada[estacio].nomEstacio, '\0', strlen(nomMemComp) + 1);
-    strcpy(infoAcumulada[estacio].nomEstacio, nomMemComp);
+    *infoAcumulada[estacio].nomEstacio = (char *) malloc(strlen(*nomMemComp) + 1);
+    memset(infoAcumulada[estacio].nomEstacio, '\0', strlen(*nomMemComp) + 1);
+    strcpy(*infoAcumulada[estacio].nomEstacio, *nomMemComp);
     infoAcumulada[estacio].temperatura += memComp->temperatura;
     infoAcumulada[estacio].humitat += memComp->humitat;
     infoAcumulada[estacio].pressio_atmosferica += memComp->pressio_atmosferica;
@@ -136,11 +136,13 @@ int crearMemoriaCompartida() {
       return ERR_OUT;
   }
   //shmat nom
-  nomMemComp = shmat(shmNom, 0, 0);
+  *nomMemComp = shmat(shmNom, 0, 0);
   if (nomMemComp == NULL){
       perror("shmat");
       return ERR_OUT;
   }
+
+  return 0;
 }
 
 int main(){
@@ -172,7 +174,7 @@ int main(){
         //Guardem info i calculem mitjana.
         //Comprovem si tenim l'estació
         if (numEstacions != 0) {
-            int estacio = buscaEstacio(memComp->nomEstacio, numEstacions);
+            int estacio = buscaEstacio(*memComp->nomEstacio, numEstacions);
             if (estacio == -1){
                 //Creem una nova
                 numEstacions++; //Augmentem el nombre de estacions existents
@@ -180,6 +182,8 @@ int main(){
                 infoAcumulada = (infoLloyd *) realloc(infoAcumulada, sizeof(infoLloyd) * numEstacions); //Reservem espai per la nova estacio a l'acumulat
                 numDades = (int *) realloc(numDades, sizeof(int)*numEstacions); //Reservo espai per el nombre de dades/estacio
                 numDades[numEstacions-1] = 1;
+                estacions[numEstacions-1].nomEstacio = (char **) malloc(sizeof(char *));
+                infoAcumulada[numEstacions-1].nomEstacio = (char **) malloc(sizeof(char *));
                 //Inicialitzar infoAcumulada
                 inicialitzaAcum(numEstacions-1);
                 //Afegim les noves dades a la estacio
@@ -189,6 +193,7 @@ int main(){
                 //Fer un guarda dades acumulades
                 numDades[estacio]++;
                 infoAcumulada = (infoLloyd *) realloc(infoAcumulada, sizeof(infoLloyd)*numDades[estacio]);
+                infoAcumulada[numDades[estacio]-1].nomEstacio = (char **) malloc(sizeof(char *));
                 guardaDadesAcumulades(estacio);
                 calculaMitjana(estacio);
             }
@@ -201,9 +206,12 @@ int main(){
             numDades = (int *) malloc(sizeof(int)); //Reservem espai per el nombre de dades per estacio
             numDades[0] = 1;
             numEstacions++;
+            estacions[numEstacions-1].nomEstacio = (char **) malloc(sizeof(char *));
+            infoAcumulada[numEstacions-1].nomEstacio = (char **) malloc(sizeof(char *));
 
             //printf("HO GUARDEM A LA REGIO %d\n", memComp);
-            printf("- Nom estacio: %s\n", nomMemComp);
+            printf("- Llargada nom estacio: %ld\n", strlen(*nomMemComp));
+            printf("- Nom estacio: %s\n", *nomMemComp);
             printf("- Temperatura: %.2f\n", memComp->temperatura);
             printf("- Humitat: %d\n", memComp->humitat);
             printf("- Pressio: %.2f\n", memComp->pressio_atmosferica);

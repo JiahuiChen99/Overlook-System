@@ -45,8 +45,8 @@ int getMemoriaCompartida(){
           perror("shmget");
           return ERR_OUT;
       }
-      memComp->nomEstacio          = shmat(shmNom,0,0);
-      if (memComp->nomEstacio == NULL){
+      (*(*memComp).nomEstacio)          = shmat(shmNom,0,0);
+      if ((*(*memComp).nomEstacio) == NULL){
           perror("shmat");
           return ERR_OUT;
       }
@@ -106,8 +106,8 @@ void signalhandler(int sigint){
             //Tanquem semàfors
             destrueixSemafors();
             //Netejem la memoria compartida
+            shmdt((*memComp).nomEstacio);
             shmdt(memComp);
-            shmdt(nomMemComp);
             //shmctl(shm, IPC_RMID, NULL);
 
             //Tanquem el servidor

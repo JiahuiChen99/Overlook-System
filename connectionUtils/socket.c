@@ -323,16 +323,16 @@ void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphor
 
     printf("JACK: Guardar dades a la memoria compartida\n");
     SEM_wait(&semFills);
-    memComp->nomEstacio          = (char*) malloc(sizeof(char)*strlen(origen) + 1);
-    memset(memComp->nomEstacio, '\0', strlen(origen) + 1);
-    strcpy(memComp->nomEstacio, origen);
+    (*(*memComp).nomEstacio)         = (char*) malloc(sizeof(char)*strlen(origen) + 1);
+    memset((*(*memComp).nomEstacio), '\0', strlen(origen) + 1);
+    strcpy((*(*memComp).nomEstacio), origen);
     memComp->temperatura         = dadesDanny.temperatura;
     memComp->humitat             = dadesDanny.humitat;
     memComp->pressio_atmosferica = dadesDanny.pressio_atmosferica;
     memComp->precipitacio        = dadesDanny.precipitacio;
 
     //printf("HO GUARDEM A LA REGIO %d\n", memComp->);
-    printf("- Nom estacio: %s\n", memComp->nomEstacio);
+    printf("- Nom estacio: %s\n", (*(*memComp).nomEstacio));
     printf("- Temperatura: %.2f\n", memComp->temperatura);
     printf("- Humitat: %d\n", memComp->humitat);
     printf("- Pressio: %.2f\n", memComp->pressio_atmosferica);
@@ -341,6 +341,8 @@ void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphor
     printf("JACK: Dades guardades i avisem Lloyd\n");
     SEM_signal(&semJack);
     SEM_wait(&semJack);
+    //JIAHUI PRESTA ATENCIÓ HAZLO POR MAYUYU QUE IGUAL ESTE FREE HACE MUCHA FALTA
+    //free((*(*memComp).nomEstacio));
     SEM_signal(&semFills);
 }
 
