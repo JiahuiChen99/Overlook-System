@@ -24,8 +24,9 @@
 #define ERR_OUT -1
 //Variables globals
 semaphore semJack;
-int shm;
+int shm, shmNom;
 infoLloyd * memComp;
+char * nomMemComp;
 infoLloyd * estacions; //Array de les mitjanes de estacions
 infoLloyd * infoAcumulada; //Matriu on guardem totes les instàncies de info que ens arriben
 int * numDades; //Guardem quantes dades té cada array de infoAcumulada
@@ -40,6 +41,8 @@ void signalhandler(int signum){
             //Netejem la memoria compartida
             shmdt(memComp);
             shmctl(shm, IPC_RMID, NULL);
+            shmdt(nomMemComp);
+            shmctl(shmNom, IPC_RMID, NULL);
             //Alliberem la memòria reservada.
             for (int j = 0; j < numEstacions; j++){
                 free(estacions[j].nomEstacio);
@@ -76,11 +79,11 @@ void calculaMitjana(int estacio){
 void guardaDadesMitjana(int estacio){
     //TODO:Fer-ho amb strcpy
     printf("LLOYD: Guardant dades mitjana\n");
-    estacions[estacio].nomEstacio = (char *) malloc(strlen(memComp->nomEstacio) + 1);
+    estacions[estacio].nomEstacio = (char *) malloc(strlen(nomMemComp) + 1);
     printf("1\n");
-    memset(estacions[estacio].nomEstacio, '\0', strlen(memComp->nomEstacio) + 1);
+    memset(estacions[estacio].nomEstacio, '\0', strlen(nomMemComp) + 1);
     printf("2\n");
-    strcpy(estacions[estacio].nomEstacio, memComp->nomEstacio);
+    strcpy(estacions[estacio].nomEstacio, nomMemComp);
     printf("3\n");
     estacions[estacio].temperatura = memComp->temperatura;
     estacions[estacio].humitat = memComp->humitat;
@@ -92,9 +95,9 @@ void guardaDadesMitjana(int estacio){
 void guardaDadesAcumulades(int estacio){
     //TODO:Fer-ho amb strcpy
     printf("LLOYD: Guardant dades acumulades\n");
-    /*infoAcumulada[estacio].nomEstacio = (char *) malloc(strlen(memComp->nomEstacio) + 1);
-    memset(infoAcumulada[estacio].nomEstacio, '\0', strlen(memComp->nomEstacio) + 1);
-    strcpy(infoAcumulada[estacio].nomEstacio, memComp->nomEstacio);*/
+    infoAcumulada[estacio].nomEstacio = (char *) malloc(strlen(nomMemComp) + 1);
+    memset(infoAcumulada[estacio].nomEstacio, '\0', strlen(nomMemComp) + 1);
+    strcpy(infoAcumulada[estacio].nomEstacio, nomMemComp);
     infoAcumulada[estacio].temperatura += memComp->temperatura;
     infoAcumulada[estacio].humitat += memComp->humitat;
     infoAcumulada[estacio].pressio_atmosferica += memComp->pressio_atmosferica;
@@ -112,24 +115,42 @@ void inicialitzaAcum(int index){
     printf("LLOYD: Acabat iniciar acumulades\n");
 }
 
+int crearMemoriaCompartida() {
+  //shmget  struct
+  shm = shmget(ftok("lloyd.c", 'a'), sizeof(infoLloyd), IPC_CREAT | IPC_EXCL | 0600);
+  if(shm < 0){
+      perror("shmget");
+      return ERR_OUT;
+  }
+  //shmat struct
+  memComp = shmat(shm, 0, 0);
+  if (memComp == NULL){
+      perror("shmat");
+      return ERR_OUT;
+  }
+
+  //shmget  nom
+  shmNom = shmget(ftok("lloyd.c", 'b'), sizeof(char *), IPC_CREAT | IPC_EXCL | 0600);
+  if(shm < 0){
+      perror("shmget");
+      return ERR_OUT;
+  }
+  //shmat nom
+  nomMemComp = shmat(shmNom, 0, 0);
+  if (nomMemComp == NULL){
+      perror("shmat");
+      return ERR_OUT;
+  }
+}
+
 int main(){
     numEstacions = 0;
     //Agafem la memòria compartida
-    //shmget
-    shm = shmget(ftok("lloyd.c", 'a'), sizeof(infoLloyd), IPC_CREAT | IPC_EXCL | 0600);
-    if(shm < 0){
-        perror("shmget");
-        return ERR_OUT;
-    }
-    //shmat
-    memComp = shmat(shm, 0, 0);
-    if (memComp == NULL){
-        perror("shmat");
-        return ERR_OUT;
-    }
+    int s =crearMemoriaCompartida();
+    if (s < 0) {return ERR_OUT;}
 
     //Inicialitzem semàfors
-    int s = SEM_constructor_with_name(&semJack, ftok("lloyd.c",'J'));
+    s = SEM_constructor_with_name(&semJack, ftok("lloyd.c",'J'));
 
     if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
@@ -182,7 +203,7 @@ int main(){
             numEstacions++;
 
             //printf("HO GUARDEM A LA REGIO %d\n", memComp);
-            printf("- Nom estacio: %c\n", memComp->nomEstacio[0]);
+            printf("- Nom estacio: %s\n", nomMemComp);
             printf("- Temperatura: %.2f\n", memComp->temperatura);
             printf("- Humitat: %d\n", memComp->humitat);
             printf("- Pressio: %.2f\n", memComp->pressio_atmosferica);
