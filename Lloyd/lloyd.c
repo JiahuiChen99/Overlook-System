@@ -75,29 +75,41 @@ void calculaMitjana(int estacio){
 
 void guardaDadesMitjana(int estacio){
     //TODO:Fer-ho amb strcpy
-    estacions[estacio].nomEstacio = (char *) malloc(strlen(memComp->nomEstacio));
-    strcpy(infoAcumulada[estacio].nomEstacio, memComp->nomEstacio);
+    printf("LLOYD: Guardant dades mitjana\n");
+    estacions[estacio].nomEstacio = (char *) malloc(strlen(memComp->nomEstacio) + 1);
+    printf("1\n");
+    memset(estacions[estacio].nomEstacio, '\0', strlen(memComp->nomEstacio) + 1);
+    printf("2\n");
+    strcpy(estacions[estacio].nomEstacio, memComp->nomEstacio);
+    printf("3\n");
     estacions[estacio].temperatura = memComp->temperatura;
     estacions[estacio].humitat = memComp->humitat;
     estacions[estacio].pressio_atmosferica = memComp->pressio_atmosferica;
     estacions[estacio].precipitacio = memComp->precipitacio;
+    printf("LLOYD: Guardant dades mitjana\n");
 }
 
 void guardaDadesAcumulades(int estacio){
     //TODO:Fer-ho amb strcpy
-    infoAcumulada[estacio].nomEstacio = (char *) malloc(strlen(memComp->nomEstacio));
-    strcpy(infoAcumulada[estacio].nomEstacio, memComp->nomEstacio);
+    printf("LLOYD: Guardant dades acumulades\n");
+    /*infoAcumulada[estacio].nomEstacio = (char *) malloc(strlen(memComp->nomEstacio) + 1);
+    memset(infoAcumulada[estacio].nomEstacio, '\0', strlen(memComp->nomEstacio) + 1);
+    strcpy(infoAcumulada[estacio].nomEstacio, memComp->nomEstacio);*/
     infoAcumulada[estacio].temperatura += memComp->temperatura;
     infoAcumulada[estacio].humitat += memComp->humitat;
     infoAcumulada[estacio].pressio_atmosferica += memComp->pressio_atmosferica;
     infoAcumulada[estacio].precipitacio += memComp->precipitacio;
+    printf("LLOYD: Hem acabat de guardar dades acumulades\n");
 }
 
 void inicialitzaAcum(int index){
+    printf("LLOYD: Iniciem acumulades\n");
+    infoAcumulada[index].nomEstacio = NULL;
     infoAcumulada[index].temperatura = 0;
     infoAcumulada[index].humitat = 0;
     infoAcumulada[index].pressio_atmosferica = 0;
     infoAcumulada[index].precipitacio = 0;
+    printf("LLOYD: Acabat iniciar acumulades\n");
 }
 
 int main(){
@@ -117,14 +129,15 @@ int main(){
     }
 
     //Inicialitzem semàfors
-    int s = SEM_constructor_with_name(&semJack, 'J');
-    if (s == 0){
+    int s = SEM_constructor_with_name(&semJack, ftok("lloyd.c",'J'));
+
+    if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
         return ERR_OUT;
     }
 
     s = SEM_init(&semJack, 0);
-    if (s == 0){
+    if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
         return ERR_OUT;
     }
@@ -133,6 +146,7 @@ int main(){
     signal(SIGINT, signalhandler);
 
     while (1) {
+        printf("LLOYD: Esperem les dades de Jack\n");
         SEM_wait(&semJack);
         //Guardem info i calculem mitjana.
         //Comprovem si tenim l'estació
@@ -159,16 +173,27 @@ int main(){
             }
         }else{
             //Reservem memòria per les estructures necessàries
+
+            printf("LLOYD: Hem rebut les dades de Jack 1\n");
             estacions = (infoLloyd *) malloc(sizeof(infoLloyd)); //Reservem espai per la primera estacio
             infoAcumulada = (infoLloyd *) malloc(sizeof(infoLloyd)); //Reservem espai per la primera estacio a l'acumulat
-            numDades = (int *) malloc(sizeof(int)); //Reservo espai per el nombre de dades per estacio
+            numDades = (int *) malloc(sizeof(int)); //Reservem espai per el nombre de dades per estacio
             numDades[0] = 1;
             numEstacions++;
+
+            //printf("HO GUARDEM A LA REGIO %d\n", memComp);
+            printf("- Nom estacio: %c\n", memComp->nomEstacio[0]);
+            printf("- Temperatura: %.2f\n", memComp->temperatura);
+            printf("- Humitat: %d\n", memComp->humitat);
+            printf("- Pressio: %.2f\n", memComp->pressio_atmosferica);
+            printf("- Precipitacio: %.2f\n", memComp->precipitacio);
+
             //Inicialitzar infoAcumulada
             inicialitzaAcum(numEstacions-1);
             //Guardem les dades
             guardaDadesAcumulades(numEstacions-1);
             guardaDadesMitjana(numEstacions-1);
+            printf("LLOYD: Hem tractat les dades de Jack 1\n");
         }
         SEM_signal(&semJack);
     }

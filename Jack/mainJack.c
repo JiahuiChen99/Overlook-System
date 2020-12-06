@@ -29,35 +29,42 @@ int shm;
 infoLloyd * memComp;
 
 int getMemoriaCompartida(){
-    shm = shmget(ftok("lloyd.c", 'a'), sizeof(infoLloyd), IPC_CREAT | IPC_EXCL | 0600);
+    shm = shmget(ftok("../Lloyd/lloyd.c", 'a'), sizeof(infoLloyd), 0600);
     if(shm < 0){
         perror("shmget");
         return ERR_OUT;
     }
     //shmat
-    memComp = shmat(shm, 0, 0);
+    memComp = (infoLloyd *)shmat(shm, 0, 0);
     if (memComp == NULL){
         perror("shmat");
         return ERR_OUT;
+    }else{
+        memComp->nomEstacio          = NULL;
+        memComp->temperatura         = 0;
+        memComp->humitat             = 0;
+        memComp->pressio_atmosferica = 0;
+        memComp->precipitacio        = 0;
     }
     return 0;
 }
 
 int inicialitzaSemafors(){
-    int s = SEM_constructor_with_name(&semJack, 'J');
-    if (s == 0){
+    int s = SEM_constructor_with_name(&semJack, ftok("../Lloyd/lloyd.c", 'J'));
+
+    if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
         return ERR_OUT;
     }
 
-    s = SEM_constructor_with_name(&semFills, 'F');
-    if (s == 0){
+    s = SEM_constructor_with_name(&semFills, ftok("mainJack.c", 'F'));
+    if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
         return ERR_OUT;
     }
 
     s = SEM_init(&semFills, 1);
-    if (s == 0){
+    if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
         return ERR_OUT;
     }

@@ -194,6 +194,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques, semaphore semJack, semaphor
     bytes = sprintf(buff, "%.1f", dadesDanny.precipitacio);
     write(1, buff, bytes);
     write(1, "\n", 1);
+
     //Enviar dades a Lloyd
     enviarALloyd(dadesDanny, dadesMeteorologiques.origen, semJack, semFills, memComp);
 
@@ -319,12 +320,25 @@ void dadesMeteorologiquesSerializer(char *serial, char *dades){
 
 void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphore semFills, infoLloyd * memComp){
     //Esperem a tenir el torn a la memòria compartida
+
+    printf("JACK: Guardar dades a la memoria compartida\n");
     SEM_wait(&semFills);
-    memComp->nomEstacio          = origen;
+    memComp->nomEstacio          = (char*) malloc(sizeof(char)*strlen(origen) + 1);
+    memset(memComp->nomEstacio, '\0', strlen(origen) + 1);
+    strcpy(memComp->nomEstacio, origen);
     memComp->temperatura         = dadesDanny.temperatura;
     memComp->humitat             = dadesDanny.humitat;
     memComp->pressio_atmosferica = dadesDanny.pressio_atmosferica;
     memComp->precipitacio        = dadesDanny.precipitacio;
+
+    //printf("HO GUARDEM A LA REGIO %d\n", memComp->);
+    printf("- Nom estacio: %s\n", memComp->nomEstacio);
+    printf("- Temperatura: %.2f\n", memComp->temperatura);
+    printf("- Humitat: %d\n", memComp->humitat);
+    printf("- Pressio: %.2f\n", memComp->pressio_atmosferica);
+    printf("- Precipitacio: %.2f\n", memComp->precipitacio);
+
+    printf("JACK: Dades guardades i avisem Lloyd\n");
     SEM_signal(&semJack);
     SEM_wait(&semJack);
     SEM_signal(&semFills);

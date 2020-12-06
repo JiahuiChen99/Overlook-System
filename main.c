@@ -14,6 +14,7 @@
 
 #define START "Starting Danny...\n"
 #define DISCONNECTION "Disconnecting Danny...\n"
+#define DISCONNECTION_JACK "Disconnecting Jack...\n"
 
 //Variables globals
 configDanny config;
@@ -39,6 +40,21 @@ void signalhandler(int sigint){
             free (config.ipWendy);
 
             write(1, DISCONNECTION, sizeof(DISCONNECTION));
+            exit(0);
+            break;
+        case SIGPIPE:
+
+            close(fdsocket);
+            shutdown(fdsocket, 2);
+
+            free (config.nom);
+            free (config.carpeta);
+            free (config.ipJack);
+            free (config.ipWendy);
+
+            write(1, DISCONNECTION_JACK, sizeof(DISCONNECTION_JACK));
+            write(1, DISCONNECTION, sizeof(DISCONNECTION));
+
             exit(0);
             break;
         default:
@@ -73,6 +89,7 @@ int main(int argc, char *argv[]) {
     //Reassingem interrupcions
     signal(SIGALRM, signalhandler);
     signal(SIGINT, signalhandler);
+    signal(SIGPIPE, signalhandler);
 
     //Iniciem la conexió amb el servidor Jack
     fdsocket = iniciarclient(config.ipJack, config.portJack);
