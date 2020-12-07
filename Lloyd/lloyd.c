@@ -23,32 +23,62 @@
 
 #define ERR_OUT -1
 //Variables globals
-semaphore semJack;
+Sincronitzacio sincron;
 int shm;
 infoLloyd * memComp;
 infoLloyd * estacions; //Array de les mitjanes de estacions
 infoLloyd * infoAcumulada; //Matriu on guardem totes les instàncies de info que ens arriben
 int * numDades; //Guardem quantes dades té cada array de infoAcumulada
 int numEstacions;
-
+int alarmSonada;
 //Signal Handler per a controlar ctrl+c que faràn sortir el programa
 void signalhandler(int signum){
+    char buff[100];
+    int nBytes = 0;
+    int out;
+
     switch(signum){
+        case SIGALRM:
+            //Guardar la informació a memòria secundària
+            printf("LA ALARMA HA SONAT EN 20 SEC\n");
+            out = open("Hallorann.txt", O_RDWR | O_CREAT, 0666);
+
+            //Per cada estació
+            for (int i = 0; i < numEstacions; i++) {
+                write(out, estacions[i].nomEstacio, strlen(estacions[i].nomEstacio));
+                write(out, "\n", 1);
+
+                nBytes = sprintf(buff, "%.2f\n", estacions[i].temperatura);
+                write(out, buff, nBytes);
+
+                nBytes = sprintf(buff, "%d\n", estacions[i].humitat);
+                write(out, buff, nBytes);
+
+                nBytes = sprintf(buff, "%.2f\n", estacions[i].pressio_atmosferica);
+                write(out, buff, nBytes);
+
+                nBytes = sprintf(buff, "%.2f\n", estacions[i].precipitacio);
+                write(out, buff, nBytes);
+            }
+            alarmSonada = 1;
+            alarm(20);
+            break;
+
         case SIGINT:
             //Destruim semàfor
-            SEM_destructor(&semJack);
+            SEM_destructor(&(sincron).semJack);
+            SEM_destructor(&(sincron).semJack2);
             //Netejem la memoria compartida
             shmdt(memComp);
             shmctl(shm, IPC_RMID, NULL);
 
             //Alliberem la memòria reservada.
-            for (int j = 0; j < numEstacions; j++){
-                free(estacions[j].nomEstacio);
-                free(infoAcumulada[j].nomEstacio);
+            if(numEstacions > 0){
+                free(estacions);
+                free(infoAcumulada);
+                free(numDades);
             }
-            free(estacions);
-            free(infoAcumulada);
-            free(numDades);
+            exit(0);
             break;
         default:
             break;
@@ -95,7 +125,7 @@ void inicialitzaAcum(int index){
     infoAcumulada[index].temperatura = 0;
     infoAcumulada[index].humitat = 0;
     infoAcumulada[index].pressio_atmosferica = 0;
-    infoAcumulada[index].precipitacio = 0
+    infoAcumulada[index].precipitacio = 0;
 }
 
 int crearMemoriaCompartida() {
@@ -115,32 +145,60 @@ int crearMemoriaCompartida() {
     return 0;
 }
 
+int crearSemafors(){
+    //Inicialitzem semàfors
+    int s = 0;
+    s = SEM_constructor_with_name(&(sincron.semJack), ftok("lloyd.c",'J'));
+
+    if (s < 0){
+        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
+        return ERR_OUT;
+    }
+
+    s = SEM_init(&(sincron).semJack, 0);
+    if (s < 0){
+        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
+        return ERR_OUT;
+    }
+
+    s = SEM_constructor_with_name(&(sincron.semJack2), ftok("lloyd.c",'P'));
+
+    if (s < 0){
+        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
+        return ERR_OUT;
+    }
+
+    s = SEM_init(&(sincron.semJack2), 0);
+    if (s < 0){
+        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
+        return ERR_OUT;
+    }
+
+    return 0;
+}
+
 int main(){
     numEstacions = 0;
+    alarmSonada = 0;
+
     //Agafem la memòria compartida
     int s =crearMemoriaCompartida();
     if (s < 0) {return ERR_OUT;}
 
     //Inicialitzem semàfors
-    s = SEM_constructor_with_name(&semJack, ftok("lloyd.c",'J'));
-
-    if (s < 0){
-        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
-        return ERR_OUT;
-    }
-
-    s = SEM_init(&semJack, 0);
-    if (s < 0){
-        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
-        return ERR_OUT;
-    }
-
+    s = crearSemafors();
+    if (s < 0) {return ERR_OUT;}
     //Reassignem signals
     signal(SIGINT, signalhandler);
+    signal(SIGALRM, signalhandler);
+
+    alarm(20);
 
     while (1) {
-        printf("LLOYD: Esperem les dades de Jack\n");
-        SEM_wait(&semJack);
+
+        SEM_wait(&(sincron.semJack));
+
+        printf("------------- ENTRA\n");
         //Guardem info i calculem mitjana
         if (numEstacions != 0) {
 
@@ -189,7 +247,7 @@ int main(){
             guardaDadesAcumulades(numEstacions-1);
             guardaDadesMitjana(numEstacions-1);
         }
-        SEM_signal(&semJack);
+        SEM_signal(&(sincron.semJack2));
     }
 
     return 0;

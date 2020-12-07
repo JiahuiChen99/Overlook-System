@@ -33,19 +33,19 @@
 
 //Sockets utils
 //Cridar desde mainJack.c
-int gestionarClient(int fd, semaphore semJack, semaphore semFills, infoLloyd * memComp);
+int gestionarClient(int fd, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp);
 
 //Jack rebent Danny
 //Es crida desde gestionarClient
-int parseigDadesDanny(osPacket dadesMeteorologiques, semaphore semJack, semaphore semFills, infoLloyd * memComp);
-int llegirDadesClient(int fd, semaphore semJack, semaphore semFills, infoLloyd * memComp);
+int parseigDadesDanny(osPacket dadesMeteorologiques, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp);
+int llegirDadesClient(int fd, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp);
 
 
 //Es crida desde aquí dins
 void dadesMeteorologiquesSerializer(char *serial, char *dades);
 
 //Es crida desde parseigDadesDanny
-void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphore semFills, infoLloyd * memComp);
+void enviarALloyd(txtFile dadesDanny, char * origen, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp);
 
 
 //Danny enviant a Jack

@@ -1,6 +1,8 @@
 #ifndef STRUCTS_H_
 #define STRUCTS_H_
 
+#include "semaphore_v2.h"
+
 typedef struct {
     char nomEstacio[101];
     float temperatura;
@@ -43,5 +45,10 @@ typedef struct configJack{
     int portJack;
 }configJack;
 
+
+typedef struct{
+    semaphore semJack;
+    semaphore semJack2;
+} Sincronitzacio;
 
 #endif

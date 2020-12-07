@@ -1,15 +1,15 @@
 #include "socket.h"
 
-int gestionarClient(int fd, semaphore semJack, semaphore semFills, infoLloyd * memComp){
+int gestionarClient(int fd, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp){
     int finish=1;
     do{
-        finish = llegirDadesClient(fd, semJack, semFills, memComp);
+        finish = llegirDadesClient(fd, sincron, semFills, memComp);
     }while(finish >= 0);
     return 0;
 }
 
 
-int llegirDadesClient(int socketFD, semaphore semJack, semaphore semFills, infoLloyd * memComp){
+int llegirDadesClient(int socketFD, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp){
     char trama[sizeof(osPacket)], serial[115];
     osPacket dadesMeteorologiques, tramaResposta;
 
@@ -52,7 +52,7 @@ int llegirDadesClient(int socketFD, semaphore semJack, semaphore semFills, infoL
         /*char buffer[20];
         int bytes = sprintf(buffer, "%s\n%c", nomclient, '\0');
         write(1,buffer,bytes);*/
-        int dadesStatus = parseigDadesDanny(dadesMeteorologiques, semJack, semFills, memComp);
+        int dadesStatus = parseigDadesDanny(dadesMeteorologiques, sincron, semFills, memComp);
 
         if(dadesStatus == ERROR_DADES_DANNY){
             //Popular la trama amb KO
@@ -79,7 +79,7 @@ int llegirDadesClient(int socketFD, semaphore semJack, semaphore semFills, infoL
     return 0;
 }
 
-int parseigDadesDanny(osPacket dadesMeteorologiques, semaphore semJack, semaphore semFills, infoLloyd * memComp){
+int parseigDadesDanny(osPacket dadesMeteorologiques, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp){
     int i, j, hashtagCounter, bytes;
     char *aux = NULL, buff[100];
     i = j = bytes = hashtagCounter = 0;
@@ -196,7 +196,7 @@ int parseigDadesDanny(osPacket dadesMeteorologiques, semaphore semJack, semaphor
     write(1, "\n", 1);
 
     //Enviar dades a Lloyd
-    enviarALloyd(dadesDanny, dadesMeteorologiques.origen, semJack, semFills, memComp);
+    enviarALloyd(dadesDanny, dadesMeteorologiques.origen, sincron, semFills, memComp);
 
 
     free(dadesDanny.data);
@@ -318,7 +318,7 @@ void dadesMeteorologiquesSerializer(char *serial, char *dades){
     }
 }
 
-void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphore semFills, infoLloyd * memComp){
+void enviarALloyd(txtFile dadesDanny, char * origen, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp){
     //Esperem a tenir el torn a la memòria compartida
 
     SEM_wait(&semFills);
@@ -329,8 +329,8 @@ void enviarALloyd(txtFile dadesDanny, char * origen, semaphore semJack, semaphor
     memComp->pressio_atmosferica = dadesDanny.pressio_atmosferica;
     memComp->precipitacio        = dadesDanny.precipitacio;
 
-    SEM_signal(&semJack);
-    SEM_wait(&semJack);
+    SEM_signal(&(sincron).semJack);
+    SEM_wait(&(sincron).semJack2);
 
     SEM_signal(&semFills);
 }

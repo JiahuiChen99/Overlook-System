@@ -24,8 +24,8 @@ int forkCounter = 0;
 pid_t parent_pid;
 //Variables globals per conectar amb Lloyd
 semaphore semFills;
-semaphore semJack;
-int shm, shmNom;
+Sincronitzacio sincron;
+int shm;
 infoLloyd * memComp;
 
 int getMemoriaCompartida(){
@@ -50,7 +50,14 @@ int getMemoriaCompartida(){
 }
 
 int inicialitzaSemafors(){
-    int s = SEM_constructor_with_name(&semJack, ftok("../Lloyd/lloyd.c", 'J'));
+    int s = SEM_constructor_with_name(&(sincron.semJack), ftok("../Lloyd/lloyd.c", 'J'));
+
+    if (s < 0){
+        write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
+        return ERR_OUT;
+    }
+
+    s = SEM_constructor_with_name(&(sincron.semJack2), ftok("../Lloyd/lloyd.c", 'P'));
 
     if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
@@ -74,7 +81,8 @@ int inicialitzaSemafors(){
 
 void destrueixSemafors(){
     //Destruim semàfor
-    SEM_destructor(&semJack);
+    SEM_destructor(&(sincron.semJack));
+    SEM_destructor(&(sincron.semJack2));
     SEM_destructor(&semFills);
 }
 
@@ -192,7 +200,7 @@ int main(int argc, char *argv[]) {
                 write(1, NEW_CONNECTION, strlen(NEW_CONNECTION));
                 write(1, nomclient, strlen(nomclient));
                 write(1, "\n", sizeof("\n"));
-                gestionarClient(socketTemp, semJack, semFills, memComp);
+                gestionarClient(socketTemp, sincron, semFills, memComp);
                 //TODO: Allibrerar nomclient
                 return 0;
                 break;
