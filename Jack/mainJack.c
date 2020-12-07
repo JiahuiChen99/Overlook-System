@@ -40,20 +40,11 @@ int getMemoriaCompartida(){
         perror("shmat");
         return ERR_OUT;
     }else{
-      shmNom = shmget(ftok("../Lloyd/lloyd.c", 'b'), sizeof(char *), 0600);
-      if(shm < 0){
-          perror("shmget");
-          return ERR_OUT;
-      }
-      (*(*memComp).nomEstacio)          = shmat(shmNom,0,0);
-      if ((*(*memComp).nomEstacio) == NULL){
-          perror("shmat");
-          return ERR_OUT;
-      }
-      memComp->temperatura         = 0;
-      memComp->humitat             = 0;
-      memComp->pressio_atmosferica = 0;
-      memComp->precipitacio        = 0;
+        memset(memComp->nomEstacio, '\0', 101);
+        memComp->temperatura         = 0;
+        memComp->humitat             = 0;
+        memComp->pressio_atmosferica = 0;
+        memComp->precipitacio        = 0;
     }
     return 0;
 }
