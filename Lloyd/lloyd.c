@@ -1,20 +1,4 @@
-//Llibreries externes
-#include <stdio.h>
-#include <pthread.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <sys/shm.h>
-
-//Llibreries internes
-#include "../fileParser.h"
-#include "../semaphore_v2.h"
-#include "../structs.h"
+#include "lloyd.h"
 
 //Define strings
 #define START "Starting Lloyd...\n"
@@ -22,7 +6,7 @@
 #define SEM_CREATE_ERROR "Error en crear el semàfor \n"
 
 #define ERR_OUT -1
-//Variables globals
+
 Sincronitzacio sincron;
 int shm;
 infoLloyd * memComp;
@@ -30,9 +14,9 @@ infoLloyd * estacions; //Array de les mitjanes de estacions
 infoLloyd * infoAcumulada; //Matriu on guardem totes les instàncies de info que ens arriben
 int * numDades; //Guardem quantes dades té cada array de infoAcumulada
 int numEstacions;
-int alarmSonada;
+
 //Signal Handler per a controlar ctrl+c que faràn sortir el programa
-void signalhandler(int signum){
+void signalhandlerLloyd(int signum){
     char buff[100];
     int nBytes = 0;
     int out;
@@ -60,7 +44,7 @@ void signalhandler(int signum){
                 nBytes = sprintf(buff, "%.2f\n", estacions[i].precipitacio);
                 write(out, buff, nBytes);
             }
-            alarmSonada = 1;
+
             alarm(20);
             break;
 
@@ -83,7 +67,7 @@ void signalhandler(int signum){
         default:
             break;
     }
-    signal(signum, signalhandler);
+    signal(signum, signalhandlerLloyd);
     //return 0;
 }
 
@@ -130,7 +114,7 @@ void inicialitzaAcum(int index){
 
 int crearMemoriaCompartida() {
     //shmget  struct
-    shm = shmget(ftok("lloyd.c", 'a'), sizeof(infoLloyd), IPC_CREAT | IPC_EXCL | 0600);
+    shm = shmget(ftok("../Lloyd/lloyd.c", 'a'), sizeof(infoLloyd), IPC_CREAT | IPC_EXCL | 0600);
     if(shm < 0){
         perror("shmget");
         return ERR_OUT;
@@ -148,7 +132,7 @@ int crearMemoriaCompartida() {
 int crearSemafors(){
     //Inicialitzem semàfors
     int s = 0;
-    s = SEM_constructor_with_name(&(sincron.semJack), ftok("lloyd.c",'J'));
+    s = SEM_constructor_with_name(&(sincron.semJack), ftok("../Lloyd/lloyd.c",'J'));
 
     if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
@@ -161,7 +145,7 @@ int crearSemafors(){
         return ERR_OUT;
     }
 
-    s = SEM_constructor_with_name(&(sincron.semJack2), ftok("lloyd.c",'P'));
+    s = SEM_constructor_with_name(&(sincron.semJack2), ftok("../Lloyd/lloyd.c",'P'));
 
     if (s < 0){
         write(1, SEM_CREATE_ERROR, sizeof(SEM_CREATE_ERROR));
@@ -177,22 +161,14 @@ int crearSemafors(){
     return 0;
 }
 
-int main(){
+int processaLloyd(){
     numEstacions = 0;
-    alarmSonada = 0;
 
-    //Agafem la memòria compartida
-    int s =crearMemoriaCompartida();
-    if (s < 0) {return ERR_OUT;}
-
-    //Inicialitzem semàfors
-    s = crearSemafors();
-    if (s < 0) {return ERR_OUT;}
     //Reassignem signals
-    signal(SIGINT, signalhandler);
-    signal(SIGALRM, signalhandler);
+    signal(SIGINT, signalhandlerLloyd);
+    signal(SIGALRM, signalhandlerLloyd);
 
-    alarm(20);
+    //alarm(20);
 
     while (1) {
 
@@ -208,9 +184,9 @@ int main(){
             if (estacio == -1){
                 //Creem una nova
                 numEstacions++; //Augmentem el nombre de estacions existents
-                estacions = (infoLloyd *) realloc(estacions, sizeof(infoLloyd)*numEstacions); //Reservem espai per la nova estacio
+                estacions = (infoLloyd *) realloc(estacions, sizeof(infoLloyd) * numEstacions); //Reservem espai per la nova estacio
                 infoAcumulada = (infoLloyd *) realloc(infoAcumulada, sizeof(infoLloyd) * numEstacions); //Reservem espai per la nova estacio a l'acumulat
-                numDades = (int *) realloc(numDades, sizeof(int)*numEstacions); //Reservo espai per el nombre de dades/estacio
+                numDades = (int *) realloc(numDades, sizeof(int) * numEstacions); //Reservo espai per el nombre de dades/estacio
                 numDades[numEstacions-1] = 1;
                 //Inicialitzar infoAcumulada
                 inicialitzaAcum(numEstacions-1);

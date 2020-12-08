@@ -8,6 +8,7 @@
 
 #include "../connectionUtils/socket.h"
 #include "../fileParser.h"
+#include "../Lloyd/lloyd.h"
 
 //strings
 #define START  "Starting Jack...\n"
@@ -16,13 +17,18 @@
 #define SEM_CREATE_ERROR "Error en crear el semàfor \n"
 #define ERR_OUT -1
 
+//Lloyd
+#define ERROR_FORK_LLOYD "Error al fer fork! \n"
+
 //Variables globals
 int generalSocketFD;
 int socketTemp;
 int *forkIDsClients;
 int forkCounter = 0;
 pid_t parent_pid;
+
 //Variables globals per conectar amb Lloyd
+int lloydID;
 semaphore semFills;
 Sincronitzacio sincron;
 int shm;
@@ -162,55 +168,81 @@ int main(int argc, char *argv[]) {
     //Reassingem interrupcions
     signal(SIGINT, signalhandler);
 
+    //Agafem la memòria compartida
+    int s =crearMemoriaCompartida();
+    if (s < 0) {return ERR_OUT;}
+
+    //Inicialitzem semàfors
+    s = crearSemafors();
+    if (s < 0) {return ERR_OUT;}
+
     //Crear els recursos per comunicar-se amb Lloyd
     getMemoriaCompartida();
     inicialitzaSemafors();
-    //Esperem a rebre
 
-    while(1){
-        //Fer un accept
 
-        write(1, "$Jack:\n", sizeof("$Jack:\n"));
-        write(1, "Waiting...\n", sizeof("Waiting...\n"));
-
-        socketTemp = acceptarConnexio(generalSocketFD);
-        if (socketTemp < 0){
-            bytes = sprintf(buff, ACCEPT_ERROR);
+    //Creació de Lloyd
+    lloydID = fork();
+    switch (lloydID) {
+        case -1:
+            bytes = sprintf(buff, ERROR_FORK_LLOYD);
             write(1, buff, bytes);
             return -1;
-        }
+            break;
+        case 0:   //Lloyd
+            ;
+            int lloydStatus = processaLloyd();
+            if(lloydStatus < 0){
+                return -1;
+            }
+            return 0;
+            break;
+        default:  //Pare
 
-        forkIDsClients = (int *) realloc(forkIDsClients,(forkCounter+1)*sizeof(int));
+            //Esperem a rebre connexions
+            while(1){
+                write(1, "$Jack:\n", sizeof("$Jack:\n"));
+                write(1, "Waiting...\n", sizeof("Waiting...\n"));
+
+                socketTemp = acceptarConnexio(generalSocketFD);
+                if (socketTemp < 0){
+                    bytes = sprintf(buff, ACCEPT_ERROR);
+                    write(1, buff, bytes);
+                    return -1;
+                }
+
+                forkIDsClients = (int *) realloc(forkIDsClients,(forkCounter+1)*sizeof(int));
 
 
-        //Fork per tractar el socket
-        forkIDsClients[forkCounter] = fork();
-        switch (forkIDsClients[forkCounter]) {
-            case -1:
-                //Display error
-                bytes = sprintf(buff, ERROR_FORK);
-                write(1, buff, bytes);
-                break;
-            case 0:
-                ;
-                //TODO: Afegir el nom del client
-                char *nomclient;
-                nomclient = protocolconnexioServidor(socketTemp);
-                if (strcmp(nomclient, "ERROR") == 0) return 0;
-                write(1, NEW_CONNECTION, strlen(NEW_CONNECTION));
-                write(1, nomclient, strlen(nomclient));
-                write(1, "\n", sizeof("\n"));
-                gestionarClient(socketTemp, sincron, semFills, memComp);
-                //TODO: Allibrerar nomclient
-                return 0;
-                break;
+                //Fork per tractar el socket
+                forkIDsClients[forkCounter] = fork();
+                switch (forkIDsClients[forkCounter]) {
+                    case -1:
+                        //Display error
+                        bytes = sprintf(buff, ERROR_FORK);
+                        write(1, buff, bytes);
+                        break;
+                    case 0:
+                        ;
+                        //TODO: Afegir el nom del client
+                        char *nomclient;
+                        nomclient = protocolconnexioServidor(socketTemp);
+                        if (strcmp(nomclient, "ERROR") == 0) return -1;
+                        write(1, NEW_CONNECTION, strlen(NEW_CONNECTION));
+                        write(1, nomclient, strlen(nomclient));
+                        write(1, "\n", sizeof("\n"));
+                        gestionarClient(socketTemp, sincron, semFills, memComp);
+                        //TODO: Allibrerar nomclient
+                        return 0;
+                        break;
 
-            default:
-                //Pare
-                forkCounter++;
-                break;
-        }
-
+                    default:
+                        //Pare
+                        forkCounter++;
+                        break;
+                }
+            }
+            break;
     }
     return 0;
 }
