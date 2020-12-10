@@ -398,6 +398,8 @@ int iniciarclient(char *ip, int port){
 
 int protocolDesconnexio(int fd, char * nom){
     char serial[115];
+    memset(serial, '\0', sizeof(serial));
+
     //Inicialització de la trama
     osPacket message;
     memset(message.origen, '\0', sizeof(message.origen));
@@ -419,6 +421,8 @@ int protocolDesconnexio(int fd, char * nom){
 
 int protocolconnexioClient(int fd, char * nom){
     char serial[115];
+    memset(serial, '\0', sizeof(serial));
+
     //Inicialització de la trama
     osPacket message;
     memset(message.origen, '\0', sizeof(message.origen));
@@ -446,6 +450,8 @@ int protocolconnexioClient(int fd, char * nom){
 
 char * protocolconnexioServidor(int fd){
     char serial[115];
+    memset(serial, '\0', sizeof(serial));
+
     osPacket tramaRebuda, tramaResposta;
     int tamany = 0;
     //Inicialització de la trama
@@ -455,6 +461,7 @@ char * protocolconnexioServidor(int fd){
 
     //Inicialització de la tramaResposta
     memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
+    tramaResposta.tipus = '\0';
     memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
 
     //Llegim
@@ -482,7 +489,7 @@ char * protocolconnexioServidor(int fd){
         write(fd, serial, 115);
         char *out = (char *)malloc(sizeof(char)* (strlen(tramaRebuda.dades) + 1));
 
-        tamany = sizeof(out);
+        tamany = strlen(tramaRebuda.dades) + 1;
         memset(out, '\0', tamany);
         strcpy(out, tramaRebuda.dades);
 

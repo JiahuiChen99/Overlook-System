@@ -98,14 +98,12 @@ void signalhandler(int sigint){
         case SIGINT:
             //La interrupció es propaga a tots els fills
             if(parent_pid == getpid()){
-                close(socketTemp);
-                shutdown(socketTemp, 2);
-                printf("MATO PARE\n");
-            }else{
                 free(forkIDsClients);
                 close(generalSocketFD);
                 shutdown(generalSocketFD, 2);
-                printf("MATO FILL\n");
+            }else{
+                close(socketTemp);
+                shutdown(socketTemp, 2);
             }
 
             //Tanquem semàfors
@@ -113,21 +111,10 @@ void signalhandler(int sigint){
             //Netejem la memoria compartida
             shmdt((*memComp).nomEstacio);
             shmdt(memComp);
-            //shmctl(shm, IPC_RMID, NULL);
 
-            //Tanquem el servidor
             exit(0);
             break;
         default:
-            for(int i = 0; i < (int)((int)sizeof(forkIDsClients)/(int)sizeof(int)); i++){
-                //Tanquem els canals de comunicació - sockets
-                printf("TANQUEM ELS SOCKETS en els fills\n");
-                //close(socketsClients[i]);
-                //shutdown(socketsClients[i], 2);
-            }
-            close(generalSocketFD);
-            shutdown(generalSocketFD, 2);
-            exit(0);
             break;
     }
 
@@ -224,15 +211,15 @@ int main(int argc, char *argv[]) {
                         break;
                     case 0:
                         ;
-                        //TODO: Afegir el nom del client
+
                         char *nomclient;
                         nomclient = protocolconnexioServidor(socketTemp);
                         if (strcmp(nomclient, "ERROR") == 0) return -1;
                         write(1, NEW_CONNECTION, strlen(NEW_CONNECTION));
                         write(1, nomclient, strlen(nomclient));
                         write(1, "\n", sizeof("\n"));
+                        free(nomclient);
                         gestionarClient(socketTemp, sincron, semFills, memComp);
-                        //TODO: Allibrerar nomclient
                         return 0;
                         break;
 

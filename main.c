@@ -33,6 +33,7 @@ void signalhandler(int sigint){
             //Avisar Jack
             protocolDesconnexio(fdsocket, config.nom);
             close(fdsocket);
+            shutdown(fdsocket, 2);
 
             free (config.nom);
             free (config.carpeta);

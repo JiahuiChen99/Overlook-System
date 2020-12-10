@@ -24,7 +24,7 @@ void signalhandlerLloyd(int signum){
     switch(signum){
         case SIGALRM:
             //Guardar la informació a memòria secundària
-            printf("LA ALARMA HA SONAT EN 20 SEC\n");
+            remove("Hallorann.txt");
             out = open("Hallorann.txt", O_RDWR | O_CREAT, 0666);
 
             //Per cada estació
@@ -44,6 +44,8 @@ void signalhandlerLloyd(int signum){
                 nBytes = sprintf(buff, "%.2f\n", estacions[i].precipitacio);
                 write(out, buff, nBytes);
             }
+
+            close(out);
 
             alarm(20);
             break;
@@ -174,10 +176,8 @@ int processaLloyd(){
     while (1) {
         do{
             sem_status = SEM_wait(&(sincron.semJack));
-            printf("ALARMA: sem_status: %d\n", sem_status);
         }while(sem_status < 0);
 
-        printf("------------- ENTRA\n");
         //Guardem info i calculem mitjana
         if (numEstacions != 0) {
 
@@ -211,13 +211,6 @@ int processaLloyd(){
             numDades = (int *) malloc(sizeof(int)); //Reservem espai per el nombre de dades per estacio
             numDades[0] = 1;
             numEstacions++;
-
-
-            printf("- Nom estacio: %s\n", memComp->nomEstacio);
-            printf("- Temperatura: %.2f\n", memComp->temperatura);
-            printf("- Humitat: %d\n", memComp->humitat);
-            printf("- Pressio: %.2f\n", memComp->pressio_atmosferica);
-            printf("- Precipitacio: %.2f\n", memComp->precipitacio);
 
 
             //Inicialitzar infoAcumulada
