@@ -163,16 +163,19 @@ int crearSemafors(){
 
 int processaLloyd(){
     numEstacions = 0;
+    int sem_status = 0;
 
     //Reassignem signals
     signal(SIGINT, signalhandlerLloyd);
     signal(SIGALRM, signalhandlerLloyd);
 
-    //alarm(20);
+    alarm(20);
 
     while (1) {
-
-        SEM_wait(&(sincron.semJack));
+        do{
+            sem_status = SEM_wait(&(sincron.semJack));
+            printf("ALARMA: sem_status: %d\n", sem_status);
+        }while(sem_status < 0);
 
         printf("------------- ENTRA\n");
         //Guardem info i calculem mitjana
