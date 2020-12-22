@@ -348,7 +348,6 @@ int iniciarServidor(char *ip, int port){
     s_addr.sin_family = AF_INET;
     s_addr.sin_port = htons (port);
 
-    //if (inet_aton (ip, &s_addr.sin_addr) == 0){
     if (inet_pton (AF_INET,ip, &s_addr.sin_addr) == 0){
         bytes = sprintf(buff, IP_ERROR, ip);
         write(1, buff, bytes);
@@ -385,6 +384,7 @@ int iniciarclient(char *ip, int port){
         write(1, buff, bytes);
         return -1;
     }
+    
     //Executem el bind per indicar que esperem rebre info
     if(connect(socketFD, (void *) &s_addr, sizeof(s_addr)) < 0){
         bytes = sprintf(buff, BIND_ERROR);
