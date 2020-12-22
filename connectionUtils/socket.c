@@ -384,7 +384,7 @@ int iniciarclient(char *ip, int port){
         write(1, buff, bytes);
         return -1;
     }
-    
+
     //Executem el bind per indicar que esperem rebre info
     if(connect(socketFD, (void *) &s_addr, sizeof(s_addr)) < 0){
         bytes = sprintf(buff, BIND_ERROR);
@@ -516,4 +516,172 @@ int acceptarConnexio(int generalSocketFD){
     socklen_t length = sizeof (cli_addr);
 
     return accept (generalSocketFD, (void *) &cli_addr, &length);;
+}
+
+
+int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
+    char serial[115];
+    memset(serial, '\0', sizeof(serial));
+
+    //Inicialització de la trama
+    osPacket message;
+    memset(message.origen, '\0', sizeof(message.origen));
+    message.tipus = '\0';
+    memset(message.dades, '\0', sizeof(message.dades));
+
+    // enviar nom estació
+    strcpy(message.origen, "DANNY");
+
+    //Serialitzar
+    memcpy(serial, message.origen, sizeof(message.origen));
+    serial[14] =  'I';
+
+    char buffDades[100];
+    char midaChars[36];
+    memset(buff, '\0', 100);
+    memset(midaChars, '\0', 36);
+    strcpy(buff, nom);
+    strcat(buff, '#');
+    sprintf(midaChars, "%d\0", mida);
+    strcat(buff, midaChars);
+    strcat(buff, '#');
+    strcat(buff, md5sum);
+
+    dadesMeteorologiquesSerializer(serial, buffDades);
+
+    //enviem
+    write(fd, serial, 115);
+
+    read(fd, serial, 115);
+
+    if (serial[14] == 'E') {
+        return 1;
+    }
+    return 0;
+}
+
+int enviaBytesImatge(int fd, char * dades){
+    char serial[115];
+    memset(serial, '\0', sizeof(serial));
+
+    //Inicialització de la trama
+    osPacket message;
+    memset(message.origen, '\0', sizeof(message.origen));
+    message.tipus = '\0';
+    memset(message.dades, '\0', sizeof(message.dades));
+
+    // enviar nom estació
+    strcpy(message.origen, "DANNY");
+
+    //Serialitzar
+    memcpy(serial, message.origen, sizeof(message.origen));
+    serial[14] =  'F';
+
+    dadesMeteorologiquesSerializer(serial, dades);
+
+    //enviem
+    write(fd, serial, 115);
+
+    return 0;
+}
+
+char * repBytesImatge(int fd){
+  char serial[155];
+  osPacket fragment;
+  char * imatge = (char *) malloc(sizeof(char)*101);
+  memset(imatge, '\0', 101);
+
+  int sortir = 0;
+  for(int i = 2;!sortir; i++){
+    int nBytes = read(fd, serial, 155);
+
+    if(nBytes <=0)
+      sortir = 1;
+
+    //Inicialització del serial
+    memset(serial, '\0', sizeof(serial));
+
+
+    /** Lectura de trama **/
+    //Lectura de l'origen
+    strncpy(fragment.origen, serial, 14);
+    write(1, fragment.origen, strlen(dadesMeteorologiques.origen));
+    write(1, "\n", 1);
+    //Lectura tipus
+    fragment.tipus = serial[14];
+    //Lectura de dades
+    strncpy(fragment.dades, serial + 15, 100);
+
+    strcat(imatge,fragment.dades);
+    imatge = (char *) realloc(imatge, sizeof(char)*(100*i)+1);
+    imatge[(100*i)+1] = '\0'
+
+  }
+
+  return(imatge);
+}
+
+int enviaSuccess(int fd){
+
+  char serial[115];
+  memset(serial, '\0', sizeof(serial));
+
+  //Inicialització de la trama
+  osPacket message;
+  memset(message.origen, '\0', sizeof(message.origen));
+  message.tipus = '\0';
+  memset(message.dades, '\0', sizeof(message.dades));
+
+  // enviar nom estació
+  strcpy(message.origen, "WENDY");
+
+  //Serialitzar
+  memcpy(serial, message.origen, sizeof(message.origen));
+  serial[14] =  'S';
+
+  dadesMeteorologiquesSerializer(serial, "IMATGE OK");
+
+  //enviem
+  write(fd, serial, 115);
+
+  return 0;
+
+}
+
+int enviaError(int fd){
+  char serial[115];
+  memset(serial, '\0', sizeof(serial));
+
+  //Inicialització de la trama
+  osPacket message;
+  memset(message.origen, '\0', sizeof(message.origen));
+  message.tipus = '\0';
+  memset(message.dades, '\0', sizeof(message.dades));
+
+  // enviar nom estació
+  strcpy(message.origen, "WENDY");
+
+  //Serialitzar
+  memcpy(serial, message.origen, sizeof(message.origen));
+  serial[14] =  'R';
+
+  dadesMeteorologiquesSerializer(serial, "IMATGE KO");
+
+  //enviem
+  write(fd, serial, 115);
+
+  return 0;
+}
+
+int comprovaMD5(char * md5Orig){
+
+  char * md5nou = getMD5(nom);
+
+  if(strcmp(md5nou, md5Orig) != 0){
+    return -1;
+  }
+
+
+
+  return 0;
 }

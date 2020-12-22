@@ -25,6 +25,8 @@
 #define NO_SUCH_DIRECTORY "No such directory\n"
 
 
+char * getMD5(char * nomArxiu, char * out);
+char * llegirImatge(int fd);
 int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);

@@ -58,4 +58,12 @@ int protocolDesconnexio(int fd, char * nom);
 int protocolconnexioClient(int fd, char * nom);
 char * protocolconnexioServidor(int fd);
 int acceptarConnexio(int generalSocketFD);
+
+//WENDY
+int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum);
+int enviaBytesImatge(int fd, char * dades);
+char * repBytesImatge(int fd);
+int enviaSuccess(int fd);
+int enviaError(int fd);
+int comprovaMD5(char * md5Orig);
 #endif
