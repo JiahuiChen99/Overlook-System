@@ -8,6 +8,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <errno.h>
+
+#include "./structs.h"
+#include "./connectionUtils/socket.h"
 
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
@@ -20,28 +24,10 @@
 #define NO_FILES_FOUND "No files available\n\n"
 #define NO_SUCH_DIRECTORY "No such directory\n"
 
-typedef struct {
-    char * data;
-    char * hora;
-    float temperatura;
-    int humitat;
-    float pressio_atmosferica;
-    float precipitacio;
-} txtFile;
 
-//Estructura que guardarà la informació de configuració de Danny
-typedef struct configDanny{
-    char * nom;
-    char * carpeta;
-    int temps;
-    char * ipJack;
-    int portJack;
-    char * ipWendy;
-    int portWendy;
-}configDanny;
-
-int fileDetection(configDanny *config);
+int fileDetection(configDanny *config, int socket);
 char * llegirCadena(int fd);
-configDanny llegirConfig(char *nomFitxer);
+void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);
+
 
 #endif //OVERLOOK_SYSTEM_FILEPARSER_H

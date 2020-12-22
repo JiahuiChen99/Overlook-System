@@ -10,12 +10,15 @@
 #include <fcntl.h>
 
 #include "fileParser.h"
+#include "./connectionUtils/socket.h"
 
 #define START "Starting Danny...\n"
 #define DISCONNECTION "Disconnecting Danny...\n"
+#define DISCONNECTION_JACK "Disconnecting Jack...\n"
 
 //Variables globals
 configDanny config;
+int fdsocket;
 
 void signalhandler(int sigint){
 
@@ -23,17 +26,36 @@ void signalhandler(int sigint){
 
         case SIGALRM:
             //Comprovar la carpeta i mirar si tenim arxius de text
-            fileDetection(&config);
+            fileDetection(&config, fdsocket);
 
             break;
         case SIGINT:
+            //Avisar Jack
+            protocolDesconnexio(fdsocket, config.nom);
+            close(fdsocket);
+            shutdown(fdsocket, 2);
+
             free (config.nom);
             free (config.carpeta);
             free (config.ipJack);
             free (config.ipWendy);
 
-
             write(1, DISCONNECTION, sizeof(DISCONNECTION));
+            exit(0);
+            break;
+        case SIGPIPE:
+
+            close(fdsocket);
+            shutdown(fdsocket, 2);
+
+            free (config.nom);
+            free (config.carpeta);
+            free (config.ipJack);
+            free (config.ipWendy);
+
+            write(1, DISCONNECTION_JACK, sizeof(DISCONNECTION_JACK));
+            write(1, DISCONNECTION, sizeof(DISCONNECTION));
+
             exit(0);
             break;
         default:
@@ -63,16 +85,25 @@ int main(int argc, char *argv[]) {
     config.ipWendy = NULL;
     config.portWendy = 0;
 
-    config = llegirConfig(argv[1]);
+    llegirConfig(argv[1], "Danny", &config, NULL);
 
     //Reassingem interrupcions
     signal(SIGALRM, signalhandler);
     signal(SIGINT, signalhandler);
+    signal(SIGPIPE, signalhandler);
 
+    //Iniciem la conexió amb el servidor Jack
+    fdsocket = iniciarclient(config.ipJack, config.portJack);
+    protocolconnexioClient(fdsocket, config.nom);
+    if(fdsocket < -1){
+        //Display error i sortir
+        return -1;
+    }
     while(1){
         /*sleep(config.temps);
         raise(SIGALRM);*/
         alarm(config.temps);
+        pause();
     }
 
     return 0;

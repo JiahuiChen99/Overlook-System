@@ -1,6 +1,7 @@
 #include "fileParser.h"
 
-int fileDetection(configDanny *config){
+
+int fileDetection(configDanny *config, int socket){
     DIR *directori;
     struct dirent *directoryFile;
     char buff2[500];
@@ -41,6 +42,7 @@ int fileDetection(configDanny *config){
             write(1, NO_FILES_FOUND, sizeof(NO_FILES_FOUND));
             return 0;
         }else{
+
             while ((directoryFile = readdir(directori)) != NULL){
                 //regex
                 if(strstr(directoryFile->d_name, ".txt") != NULL ||
@@ -55,8 +57,8 @@ int fileDetection(configDanny *config){
             bytes = sprintf(buff2, FILES_FOUND, totalFilesMatching);
             write(1, buff2, bytes);
 
+            //Close directori primer cop que l'obrim
             closedir(directori);
-
             directori = opendir(buff);
 
             //Mostrar el nom de tots els arxius
@@ -99,6 +101,7 @@ int fileDetection(configDanny *config){
                             exit(ERROR_RETURN);
                         }
 
+
                         char * aux;
                         txtFile.data = llegirCadena(fdFitxer);
                         txtFile.hora = llegirCadena(fdFitxer);
@@ -137,6 +140,7 @@ int fileDetection(configDanny *config){
                         write(1, "\n", 1);
 
 
+                        enviarDadesClient(socket, txtFile, config);
 
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);
@@ -196,9 +200,9 @@ char * llegirCadena(int fd){
 *
 *Retorna: Struct amb la informació llegida.
 */
-configDanny llegirConfig(char *nomFitxer){
+void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack){
     int fitxer = open(nomFitxer, O_RDONLY);
-    configDanny config;
+    char * aux;
 
     //Comprovem que el fitxer existeixi
     if(fitxer < 0){
@@ -208,35 +212,43 @@ configDanny llegirConfig(char *nomFitxer){
         exit(ERROR_RETURN);
     }
 
-    //Llegim el nom de la estacio
-    config.nom = llegirCadena(fitxer);
 
-    //Llegim la carpeta on son els arxius
-    config.carpeta =  llegirCadena(fitxer);
-    //Llegim el temps
-    char * aux;
+    if(strcmp("Danny", process)==0){
+        //Llegim el nom de la estació
+        configDanny->nom = llegirCadena(fitxer);
+        //Llegim la carpeta on son els arxius
+        configDanny->carpeta =  llegirCadena(fitxer);
+        //Llegim el temps
+        aux = llegirCadena(fitxer);
+        configDanny->temps = atoi(aux);
+    }
 
-    aux = llegirCadena(fitxer);
-    config.temps = atoi(aux);
-    //free(aux);
+    /** Depenent de "a qui" li estiguem llegint la config ho guardem a configDanny o configJack **/
+    if(strcmp("Danny", process)==0){
+        configDanny->ipJack =  llegirCadena(fitxer);
 
-    //Llegim les dades de Jack
-    config.ipJack =  llegirCadena(fitxer);
+        aux = llegirCadena(fitxer);
+        configDanny->portJack= atoi(aux);
+    }else{
+        configJack->ipJack =  llegirCadena(fitxer);
 
-    aux = llegirCadena(fitxer);
-    config.portJack= atoi(aux);
-    //free(aux);
+        aux = llegirCadena(fitxer);
+        configJack->portJack= atoi(aux);
+    }
 
-    //Llegim les dades de Wendy
-    config.ipWendy =  llegirCadena(fitxer);
 
-    aux = llegirCadena(fitxer);
-    config.portWendy = atoi(aux);
+
+    if(strcmp("Danny", process)==0){
+        //Llegim les dades de Wendy
+        configDanny->ipWendy =  llegirCadena(fitxer);
+
+        aux = llegirCadena(fitxer);
+        configDanny->portWendy = atoi(aux);
+    }
+
     free(aux);
 
     //Tanquem el File Descriptor
     close(fitxer);
 
-
-    return(config);
 }
