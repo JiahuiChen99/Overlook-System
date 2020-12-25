@@ -3,6 +3,12 @@
 
 #include "semaphore_v2.h"
 
+typedef struct{
+  char * nom;
+  int mida;
+  char * md5;
+} InfoImatge;
+
 typedef struct {
     char nomEstacio[101];
     float temperatura;
