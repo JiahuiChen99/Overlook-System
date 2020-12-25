@@ -1,5 +1,7 @@
 #include "socket.h"
 
+
+//Jack <-> Danny
 int gestionarClient(int fd, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp){
     int finish=1;
     do{
@@ -7,7 +9,6 @@ int gestionarClient(int fd, Sincronitzacio sincron, semaphore semFills, infoLloy
     }while(finish >= 0);
     return 0;
 }
-
 
 int llegirDadesClient(int socketFD, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp){
     char trama[sizeof(osPacket)], serial[115];
@@ -206,7 +207,6 @@ int parseigDadesDanny(osPacket dadesMeteorologiques, Sincronitzacio sincron, sem
     return 0;
 }
 
-
 int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
 
     //Inicialització del serial
@@ -336,6 +336,7 @@ void enviarALloyd(txtFile dadesDanny, char * origen, Sincronitzacio sincron, sem
 }
 
 
+//General
 int iniciarServidor(char *ip, int port){
     char buff[100];
     int bytes;
@@ -394,7 +395,6 @@ int iniciarclient(char *ip, int port){
 
     return socketFD;
 }
-
 
 int protocolDesconnexio(int fd, char * nom){
     char serial[115];
@@ -510,14 +510,12 @@ char * protocolconnexioServidor(int fd){
     return NULL;
 }
 
-
 int acceptarConnexio(int generalSocketFD){
     struct sockaddr_in cli_addr;
     socklen_t length = sizeof (cli_addr);
 
     return accept (generalSocketFD, (void *) &cli_addr, &length);;
 }
-
 
 int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
     char serial[115];
@@ -537,7 +535,7 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
     serial[14] =  'I';
 
     char buffDades[100];
-    char midaChars[36];
+    char midaChars[35];
     memset(buff, '\0', 100);
     memset(midaChars, '\0', 36);
     strcpy(buff, nom);
@@ -558,6 +556,70 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
         return 1;
     }
     return 0;
+}
+
+//Wendy
+InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info){
+
+
+
+  return info
+}
+
+InfoImatge llegirTramaInicial(int fd){}
+    InfoImatge info;
+    serial[115];
+    osPacket tramaRebuda, tramaResposta;
+    int tamany = 0;
+
+    //Inicialització de la trama
+    memset(tramaRebuda.origen, '\0', sizeof(tramaRebuda.origen));
+    tramaRebuda.tipus = '\0';
+    memset(tramaRebuda.dades, '\0', sizeof(tramaRebuda.dades));
+
+
+    //Inicialització de la info
+    memset(info.nom, '\0', sizeof(tramaRebuda.origen));
+    info.mida = 0;
+    memset(info.dades, '\0', sizeof(tramaRebuda.dades));
+
+    memset(serial, '\0', sizeof(serial));
+
+    //Inicialització de la tramaResposta
+    memset(tramaResposta.origen, '\0', sizeof(tramaResposta.origen));
+    tramaResposta.tipus = '\0';
+    memset(tramaResposta.dades, '\0', sizeof(tramaResposta.dades));
+
+    //Llegim
+    read(fd, serial, 115);
+
+    /** Lectura de trama **/
+    //Lectura de l'origen
+    strncpy(tramaRebuda.origen, serial, 14);
+    //Lectura tipus
+    tramaRebuda.tipus = serial[14];
+    //Lectura de dades
+    strncpy(tramaRebuda.dades, serial + 15, 100);
+
+    if ((strcmp("DANNY", tramaRebuda.origen)==0)&&(tramaRebuda.tipus == 'I')){
+
+        info = parseigTramaInicialWendy(tramaRebuda.dades, info);
+
+        return(info);
+    }else{
+        tamany = sizeof("WENDY");
+        strncpy(tramaResposta.origen, "WENDY", tamany);
+        tamany = sizeof("ERROR");
+        strncpy(tramaResposta.dades, "ERROR", tamany);
+        memset(serial, '\0', sizeof(serial));
+        tamany = sizeof(tramaResposta.origen);
+        strncpy(serial, tramaResposta.origen, tamany);
+        serial[14]='E';
+        dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
+        write(fd, serial, 115);
+        return(NULL);
+    }
+    return NULL;
 }
 
 int enviaBytesImatge(int fd, char * dades){
@@ -684,4 +746,8 @@ int comprovaMD5(char * md5Orig){
 
 
   return 0;
+}
+
+int gestionarClientWendy(int socketTemp){
+
 }

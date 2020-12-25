@@ -24,31 +24,6 @@ int forkCounter = 0;
 pid_t parent_pid;
 
 
-int getMemoriaCompartida(){
-    shm = shmget(ftok("../Lloyd/lloyd.c", 'a'), sizeof(infoLloyd), 0600);
-    if(shm < 0){
-        perror("shmget");
-        return ERR_OUT;
-    }
-    //shmat
-    memComp = (infoLloyd *)shmat(shm, 0, 0);
-    if (memComp == NULL){
-        perror("shmat");
-        return ERR_OUT;
-    }else{
-        memset(memComp->nomEstacio, '\0', 101);
-        memComp->temperatura         = 0;
-        memComp->humitat             = 0;
-        memComp->pressio_atmosferica = 0;
-        memComp->precipitacio        = 0;
-    }
-    return 0;
-}
-
-
-
-
-
 void signalhandler(int sigint){
 
     switch (sigint) {
@@ -121,6 +96,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 0:
                 ;
+                //FILL
 
                 char *nomclient;
                 nomclient = protocolconnexioServidor(socketTemp);
@@ -129,7 +105,7 @@ int main(int argc, char *argv[]) {
                 write(1, nomclient, strlen(nomclient));
                 write(1, "\n", sizeof("\n"));
                 free(nomclient);
-                gestionarClient(socketTemp, sincron, semFills, memComp);
+                gestionarClientWendy(socketTemp);
                 return 0;
                 break;
 

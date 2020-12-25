@@ -60,6 +60,9 @@ char * protocolconnexioServidor(int fd);
 int acceptarConnexio(int generalSocketFD);
 
 //WENDY
+InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info);
+InfoImatge llegirTramaInicial(int fd);
+int gestionarClientWendy(int socketTemp);
 int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum);
 int enviaBytesImatge(int fd, char * dades);
 char * repBytesImatge(int fd);
