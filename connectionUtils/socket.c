@@ -560,9 +560,35 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
 
 //Wendy
 InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info){
-
-
-
+  char aux[35];
+  int arrCounter=0;
+  memset(aux, '\0', 35);
+  for (int i =0; i<100; i++){
+    switch (i) {
+      case 29:
+        strcnpy(info.nom, aux, 30);
+        arrCounter = 0;
+        memset(aux, '\0', 35);
+        i++;
+      break;
+      case 65:
+        info.mida = atoi(aux);
+        arrCounter = 0;
+        memset(aux, '\0', 35);
+        i++;
+      break;
+      case 98:
+        strcnpy(info.md5, aux, 30);
+        arrCounter = 0;
+        memset(aux, '\0', 35);
+        i++;
+      break;
+      default:
+      aux[arrCounter] = dades[i];
+      arrCounter++;
+      break;
+    }
+  }
   return info
 }
 
