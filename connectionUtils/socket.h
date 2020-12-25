@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "../imatgeUtils/imatgeUtils.h"
+#include "../ImatgeUtils/imatgeUtils.h"
 #include "../semaphore_v2.h"
 #include "../structs.h"
 
@@ -66,8 +66,8 @@ InfoImatge llegirTramaInicial(int fd);
 int gestionarClientWendy(int socketTemp);
 int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum);
 int enviaBytesImatge(int fd, char * dades);
-char * repBytesImatge(int fd);
+char * repBytesImatge(int fd, int mida);
 int enviaSuccess(int fd);
 int enviaError(int fd);
-int comprovaMD5(char * md5Orig);
+int comprovaMD5(InfoImatge info);
 #endif

@@ -1,8 +1,8 @@
 .PHONY : clean
 
-OBJS	= mainWendy.o fileParser.o socket.o imatgeUtils.o
-SOURCE	= mainWendy.c ../fileParser.c ../connectionUtils/socket.c ../ImatgeUtils/imatgeUtils.c
-HEADER	= ../filerParser.h ../connectionUtils/socket.h ../ImatgeUtils/imatgeUtils.h
+OBJS	= mainWendy.o fileParser.o socket.o imatgeUtils.o semaphore_v2.o
+SOURCE	= mainWendy.c ../fileParser.c ../connectionUtils/socket.c ../ImatgeUtils/imatgeUtils.c ../semaphore_v2.c
+HEADER	= ../filerParser.h ../connectionUtils/socket.h ../ImatgeUtils/imatgeUtils.h ../semaphore_v2.h
 OUT	= wendy
 CC	 = gcc
 FLAGS	 = -g -c -Wall -Wextra
@@ -20,6 +20,9 @@ fileParser.o: ../fileParser.c
 
 imatgeUtils.o: ../ImatgeUtils/imatgeUtils.c
 	$(CC) $(FLAGS) ../ImatgeUtils/imatgeUtils.c
+
+semaphore_v2.o: ../semaphore_v2.c
+	$(CC) $(FLAGS) ../semaphore_v2.c
 
 socket.o: ../connectionUtils/socket.c
 	$(CC) $(FLAGS) ../connectionUtils/socket.c

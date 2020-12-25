@@ -1,6 +1,5 @@
 #include "socket.h"
 
-
 //Jack <-> Danny
 int gestionarClient(int fd, Sincronitzacio sincron, semaphore semFills, infoLloyd * memComp){
     int finish=1;
@@ -520,6 +519,7 @@ int acceptarConnexio(int generalSocketFD){
 
 int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
     char serial[115];
+    char buff[100];
     memset(serial, '\0', sizeof(serial));
 
     //Inicialització de la trama
@@ -540,10 +540,10 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
     memset(buff, '\0', 100);
     memset(midaChars, '\0', 36);
     strcpy(buff, nom);
-    strcat(buff, '#');
-    sprintf(midaChars, "%d\0", mida);
+    strcat(buff, "#");
+    sprintf(midaChars, "%d%c", mida, '\0');
     strcat(buff, midaChars);
-    strcat(buff, '#');
+    strcat(buff, "#");
     strcat(buff, md5sum);
 
     dadesMeteorologiquesSerializer(serial, buffDades);
@@ -567,7 +567,7 @@ InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info){
   for (int i =0; i<100; i++){
     switch (i) {
       case 29:
-        strcnpy(info.nom, aux, 30);
+        strncpy(info.nom, aux, 30);
         arrCounter = 0;
         memset(aux, '\0', 35);
         i++;
@@ -579,7 +579,7 @@ InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info){
         i++;
       break;
       case 98:
-        strcnpy(info.md5, aux, 30);
+        strncpy(info.md5, aux, 30);
         arrCounter = 0;
         memset(aux, '\0', 35);
         i++;
@@ -590,12 +590,12 @@ InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info){
       break;
     }
   }
-  return info
+  return info;
 }
 
 InfoImatge llegirTramaInicial(int fd){
     InfoImatge info;
-    serial[115];
+    char serial[115];
     osPacket tramaRebuda, tramaResposta;
     int tamany = 0;
 
@@ -608,7 +608,7 @@ InfoImatge llegirTramaInicial(int fd){
     //Inicialització de la info
     memset(info.nom, '\0', sizeof(tramaRebuda.origen));
     info.mida = 0;
-    memset(info.dades, '\0', sizeof(tramaRebuda.dades));
+    memset(info.md5, '\0', sizeof(tramaRebuda.dades));
 
     memset(serial, '\0', sizeof(serial));
 
@@ -644,9 +644,11 @@ InfoImatge llegirTramaInicial(int fd){
         serial[14]='E';
         dadesMeteorologiquesSerializer(serial, tramaResposta.dades);
         write(fd, serial, 115);
-        return(NULL);
+        strcpy(info.nom, "ERROR");
+        return(info);
     }
-    return NULL;
+    strcpy(info.nom, "ERROR");
+    return info;
 }
 
 int enviaBytesImatge(int fd, char * dades){
@@ -695,7 +697,7 @@ char * repBytesImatge(int fd, int mida){
     /** Lectura de trama **/
     //Lectura de l'origen
     strncpy(fragment.origen, serial, 14);
-    write(1, fragment.origen, strlen(dadesMeteorologiques.origen));
+    write(1, fragment.origen, strlen(fragment.origen));
     write(1, "\n", 1);
     //Lectura tipus
     fragment.tipus = serial[14];
@@ -704,7 +706,7 @@ char * repBytesImatge(int fd, int mida){
 
     strcat(imatge,fragment.dades);
     imatge = (char *) realloc(imatge, sizeof(char)*(100*i)+1);
-    imatge[(100*i)+1] = '\0'
+    imatge[(100*i)+1] = '\0';
     bytesLlegits+=100;
     if (bytesLlegits >= mida)
         sortir = 1;
@@ -762,12 +764,13 @@ int enviaError(int fd){
 
   //enviem
   write(fd, serial, 115);
-
+  return 0;
 }
 
 int comprovaMD5(InfoImatge info){
 
-  char * md5nou = getMD5(info.nom);
+  char * md5nou = NULL;
+  md5nou = getMD5(info.nom, md5nou);
 
   if(strcmp(md5nou, info.md5) != 0){
     return -1;
@@ -783,7 +786,7 @@ int gestionarClientWendy(int socketTemp){
     imatge = repBytesImatge(socketTemp, info.mida);
 
     //Escriure al fitxer de la imatge
-    int fitxer = open(info.nom, O_CREAT | O_RDWR)
+    int fitxer = open(info.nom, O_CREAT | O_RDWR);
 
     write(fitxer, imatge, info.mida);
 

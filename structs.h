@@ -5,7 +5,7 @@
 
 typedef struct{
   char nom[30];
-  int mida[35];
+  int mida;
   char md5[32];
 } InfoImatge;
 

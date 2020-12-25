@@ -1,4 +1,4 @@
-#include imatgeUtils.h
+#include "imatgeUtils.h"
 
 char * llegirImatge(int fd){
   char *cadena = (char *) malloc(sizeof(char)*1);
