@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "../imatgeUtils/imatgeUtils.h"
 #include "../semaphore_v2.h"
 #include "../structs.h"
 

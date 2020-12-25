@@ -674,10 +674,11 @@ int enviaBytesImatge(int fd, char * dades){
     return 0;
 }
 
-char * repBytesImatge(int fd){
+char * repBytesImatge(int fd, int mida){
   char serial[155];
   osPacket fragment;
   char * imatge = (char *) malloc(sizeof(char)*101);
+  int bytesLlegits = 0;
   memset(imatge, '\0', 101);
 
   int sortir = 0;
@@ -685,7 +686,7 @@ char * repBytesImatge(int fd){
     int nBytes = read(fd, serial, 155);
 
     if(nBytes <=0)
-      sortir = 1;
+      break;
 
     //Inicialització del serial
     memset(serial, '\0', sizeof(serial));
@@ -704,6 +705,9 @@ char * repBytesImatge(int fd){
     strcat(imatge,fragment.dades);
     imatge = (char *) realloc(imatge, sizeof(char)*(100*i)+1);
     imatge[(100*i)+1] = '\0'
+    bytesLlegits+=100;
+    if (bytesLlegits >= mida)
+        sortir = 1;
 
   }
 
@@ -761,20 +765,36 @@ int enviaError(int fd){
 
 }
 
-int comprovaMD5(char * md5Orig){
+int comprovaMD5(InfoImatge info){
 
-  char * md5nou = getMD5(nom);
+  char * md5nou = getMD5(info.nom);
 
-  if(strcmp(md5nou, md5Orig) != 0){
+  if(strcmp(md5nou, info.md5) != 0){
     return -1;
   }
-
-
 
   return 0;
 }
 
 int gestionarClientWendy(int socketTemp){
-  InfoImatge info = llegirTramaInicial(socketTemp);
+  while(1){
+    char * imatge;
+    InfoImatge info = llegirTramaInicial(socketTemp);
+    imatge = repBytesImatge(socketTemp, info.mida);
+
+    //Escriure al fitxer de la imatge
+    int fitxer = open(info.nom, O_CREAT | O_RDWR)
+
+    write(fitxer, imatge, info.mida);
+
+    //Agafar i Comprovar el md5sum
+    int esCorrecte = comprovaMD5(info);
+
+    if (!esCorrecte){
+      enviaError(socketTemp);
+    }else{
+      enviaSuccess(socketTemp);
+    }
+  }
 
 }
