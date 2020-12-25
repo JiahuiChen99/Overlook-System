@@ -312,7 +312,8 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
 void dadesMeteorologiquesSerializer(char *serial, char *dades){
     int j = 15;
 
-    for(int i = 0; i < (int)strlen(dades); i++){
+    //for(int i = 0; i < strlen(dades); i++){
+    for(int i = 0; i < 100; i++){
         serial[j] = dades[i];
         j++;
     }
@@ -592,7 +593,7 @@ InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info){
   return info
 }
 
-InfoImatge llegirTramaInicial(int fd){}
+InfoImatge llegirTramaInicial(int fd){
     InfoImatge info;
     serial[115];
     osPacket tramaRebuda, tramaResposta;
@@ -758,7 +759,6 @@ int enviaError(int fd){
   //enviem
   write(fd, serial, 115);
 
-  return 0;
 }
 
 int comprovaMD5(char * md5Orig){
@@ -775,5 +775,6 @@ int comprovaMD5(char * md5Orig){
 }
 
 int gestionarClientWendy(int socketTemp){
+  InfoImatge info = llegirTramaInicial(socketTemp);
 
 }
