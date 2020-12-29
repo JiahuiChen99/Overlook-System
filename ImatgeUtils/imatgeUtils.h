@@ -8,8 +8,11 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/wait.h>
 
-char * llegirImatge(int fd);
+#include "../structs.h"
+
+MidaImatge llegirImatge(int fd);
 char * getMD5(char * nomArxiu, char * out);
 
 #endif

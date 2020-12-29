@@ -1,7 +1,7 @@
 #include "imatgeUtils.h"
 
-char * llegirImatge(int fd){
-  InfoImatge info;
+MidaImatge llegirImatge(int fd){
+  MidaImatge info;
   info.imatge = (char *) malloc(sizeof(char)*1);
   char buff[100];
   int lletres = 0;

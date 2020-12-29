@@ -19,7 +19,7 @@
 //Variables globals
 configDanny config;
 int fdsocket;
-int socketW
+int socketW;
 
 void signalhandler(int sigint){
 
