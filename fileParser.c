@@ -169,7 +169,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
 
 
                       //JPG Parsing
-                      InfoImatge imatge = llegirImatge(fdImatge);
+                      MidaImatge imatge = llegirImatge(fdImatge);
                       char * md5;
 
                       md5 = getMD5(fitxerActual, md5);
@@ -181,8 +181,8 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         exit(ERROR_RETURN);
                       }
                       //Enviem la imatge
-                      for(i = 0; i <= info.mida ;i++){
-                        comprovacio = enviaBytesImatge(socketW, info.imatge);
+                      for(int i = 0; i <= imatge.mida ;i++){
+                        comprovacio = enviaBytesImatge(socketW, imatge.imatge);
                         if (comprovacio < 0){
                           //Error i sortir
                           write(1,IMATGE_ERROR,sizeof(IMATGE_ERROR));
