@@ -1,23 +1,25 @@
 #include "imatgeUtils.h"
 
 char * llegirImatge(int fd){
-  char *cadena = (char *) malloc(sizeof(char)*1);
+  InfoImatge info;
+  info.imatge = (char *) malloc(sizeof(char)*1);
   char buff[100];
   int lletres = 0;
   int comprovacio;
   while (1){
       comprovacio = read(fd, &buff, 100);
-      lletres+=100;
+      lletres+=comprovacio;
       if((comprovacio < 100)){
-          lletres++;
-          cadena = (char *) realloc(cadena, sizeof(char)*(lletres));
-          strcat(cadena, buff);
-          cadena[lletres-1] = '\0';
-          return(cadena);
+          //lletres+=+1;
+          info.imatge = (char *) realloc(info.imatge, sizeof(char)*(lletres));
+          strcat(info.imatge, buff);
+          //info.imatge[lletres-1] = '\0';
+          info.mida = lletres;
+          return(info);
       }else{
-          lletres++;
-          cadena = (char *) realloc(cadena, sizeof(char)*lletres);
-          strcat(cadena, buff);
+          //lletres++;
+          info.imatge = (char *) realloc(info.imatge, sizeof(char)*lletres);
+          strcat(info.imatge, buff);
       }
   }
 }

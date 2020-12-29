@@ -4,6 +4,11 @@
 #include "semaphore_v2.h"
 
 typedef struct{
+  int mida;
+  char * imatge;
+}MidaImatge;
+
+typedef struct{
   char nom[30];
   int mida;
   char md5[32];

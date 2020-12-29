@@ -19,6 +19,7 @@
 //Variables globals
 configDanny config;
 int fdsocket;
+int socketW
 
 void signalhandler(int sigint){
 
@@ -26,7 +27,7 @@ void signalhandler(int sigint){
 
         case SIGALRM:
             //Comprovar la carpeta i mirar si tenim arxius de text
-            fileDetection(&config, fdsocket);
+            fileDetection(&config, fdsocket, socketW);
 
             break;
         case SIGINT:
@@ -99,6 +100,15 @@ int main(int argc, char *argv[]) {
         //Display error i sortir
         return -1;
     }
+
+    //Iniciem la conexió amb el servidor Wendy
+    socketW = iniciarclient(config.ipWendy, config.portWendy);
+    protocolconnexioClient(socketW, config.nom);
+    if(socketW < -1){
+        //Display error i sortir
+        return -1;
+    }
+
     while(1){
         /*sleep(config.temps);
         raise(SIGALRM);*/

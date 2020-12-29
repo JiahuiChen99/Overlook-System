@@ -12,6 +12,7 @@
 
 #include "./structs.h"
 #include "./connectionUtils/socket.h"
+#include "./ImatgeUtils/imatgeUtils.h"
 
 //Arxiu configuració Danny
 #define FILE_ERROR "ERROR. ARXIU DE CONFIGURACIÓ DE %s NO TROBAT\n"
@@ -23,11 +24,11 @@
 #define DATA_FILE_NOT_FOUND "%s file not found\n"
 #define NO_FILES_FOUND "No files available\n\n"
 #define NO_SUCH_DIRECTORY "No such directory\n"
+#define TRAMA_INICIAL_ERROR "Error en enviar la trama inicial a Wendy\n"
+#define IMATGE_ERROR "Error en enviar bytes de la imatge a Wendy\n"
 
 
-
-
-int fileDetection(configDanny *config, int socket);
+int fileDetection(configDanny *config, int socket, int socketW);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);
 
