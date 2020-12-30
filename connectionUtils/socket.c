@@ -535,7 +535,7 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
     memcpy(serial, message.origen, sizeof(message.origen));
     serial[14] =  'I';
 
-    char buffDades[100];
+    //char buffDades[100];
     char midaChars[35];
     memset(buff, '\0', 100);
     memset(midaChars, '\0', 36);
@@ -545,9 +545,9 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
     strcat(buff, midaChars);
     strcat(buff, "#");
     strcat(buff, md5sum);
+    dadesMeteorologiquesSerializer(serial, buff);
 
-    dadesMeteorologiquesSerializer(serial, buffDades);
-
+    printf("MD5: %s\n", md5sum);
     //enviem
     write(fd, serial, 115);
 
@@ -783,6 +783,7 @@ int gestionarClientWendy(int socketTemp){
   while(1){
     char * imatge;
     InfoImatge info = llegirTramaInicial(socketTemp);
+    printf("EL NOM ES: %s\n", info.nom);
     imatge = repBytesImatge(socketTemp, info.mida);
 
     //Escriure al fitxer de la imatge

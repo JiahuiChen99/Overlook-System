@@ -172,11 +172,10 @@ int fileDetection(configDanny *config, int socket, int socketW){
                       MidaImatge imatge = llegirImatge(fdImatge);
                       char out[100];
                       char * md5;
-                      printf("LLEGIM EL MD5 de %s\n", fitxerActual);
                       md5 = getMD5(fitxerActual, out);
                       //Enviem la trama inicial
                       printf("TIREM LA TRAMA INICIAL\n");
-                      comprovacio =tramaInicialWendy(socketW, fitxerActual, imatge.mida, md5);
+                      comprovacio =tramaInicialWendy(socketW, directoryFile->d_name, imatge.mida, md5);
                       if (comprovacio < 0){
                         //Error i sortir
                         write(1,TRAMA_INICIAL_ERROR,sizeof(TRAMA_INICIAL_ERROR));
@@ -184,7 +183,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
                       }
                       //Enviem la imatge
                       for(int i = 0; i <= imatge.mida ;i++){
-                        printf("TIREM LA IMATGE. COP %d AMB MIDA %d\n", i, imatge.mida);
+                        //printf("TIREM LA IMATGE. COP %d AMB MIDA %d\n", i, imatge.mida);
                         comprovacio = enviaBytesImatge(socketW, imatge.imatge);
                         if (comprovacio < 0){
                           //Error i sortir
