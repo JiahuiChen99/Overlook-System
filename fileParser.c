@@ -153,59 +153,69 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         free(txtFile.data);
                         free(txtFile.hora);
                     }else{
-                      char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name) + 1)));
-                      strcpy(fitxerActual, buff);
-                      strcat(fitxerActual,directoryFile->d_name);
+                        char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name) + 1)));
+                        strcpy(fitxerActual, buff);
+                        strcat(fitxerActual,directoryFile->d_name);
 
-                      int fdImatge = open(fitxerActual, O_RDONLY);
+                        int fdImatge = open(fitxerActual, O_RDONLY);
 
-                      //Comprovem que el fitxer existeixi
-                      if(fdImatge < 0){
-                          memset(buff2, '\0', sizeof(buff2));
-                          bytes = sprintf(buff2, DATA_FILE_NOT_FOUND, directoryFile->d_name);
-                          write(1, buff2, bytes);
-                          exit(ERROR_RETURN);
-                      }
-
-
-                      //JPG Parsing
-                      MidaImatge imatge = llegirImatge(fdImatge);
-                      char out[100];
-                      char * md5;
-                      md5 = getMD5(fitxerActual, out);
-                      //Enviem la trama inicial
-                      printf("TIREM LA TRAMA INICIAL\n");
-                      comprovacio =tramaInicialWendy(socketW, directoryFile->d_name, imatge.mida, md5);
-                      if (comprovacio < 0){
-                        //Error i sortir
-                        write(1,TRAMA_INICIAL_ERROR,sizeof(TRAMA_INICIAL_ERROR));
-                        exit(ERROR_RETURN);
-                      }
-                      //Enviem la imatge
-                      for(int i = 0; i <= imatge.mida ;i++){
-                        //printf("TIREM LA IMATGE. COP %d AMB MIDA %d\n", i, imatge.mida);
-                        comprovacio = enviaBytesImatge(socketW, imatge.imatge);
-                        if (comprovacio < 0){
-                          //Error i sortir
-                          write(1,IMATGE_ERROR,sizeof(IMATGE_ERROR));
-                          exit(ERROR_RETURN);
+                        //Comprovem que el fitxer existeixi
+                        if(fdImatge < 0){
+                            memset(buff2, '\0', sizeof(buff2));
+                            bytes = sprintf(buff2, DATA_FILE_NOT_FOUND, directoryFile->d_name);
+                            write(1, buff2, bytes);
+                            exit(ERROR_RETURN);
                         }
-                      }
-                      //Llegim la resposta
-                      char serial[115];
-                      read(socketW, serial, 115);
-                      switch(serial[14]){
-                          case 'S':
-                              //Tot Correcte
-                              break;
-                          case 'R':
-                              //Error de dades
-                              write(1, IMATGE_ERROR, sizeof(IMATGE_ERROR));
-                              break;
-                          default:
-                              //Tot Correcte
-                              break;
-                      }
+
+
+                        //JPG Parsing
+                        MidaImatge imatge = llegirImatge(fdImatge);
+                        char out[100];
+                        char * md5;
+                        md5 = getMD5(fitxerActual, out);
+                        //Enviem la trama inicial
+                        printf("TIREM LA TRAMA INICIAL\n");
+                        comprovacio =tramaInicialWendy(socketW, directoryFile->d_name, imatge.mida, md5);
+                        if (comprovacio < 0){
+                            //Error i sortir
+                            write(1,TRAMA_INICIAL_ERROR,sizeof(TRAMA_INICIAL_ERROR));
+                            exit(ERROR_RETURN);
+                        }
+                        //Enviem la imatge de 100 en 100 bytes cap a Wendy
+                        for(int i = 0; i < imatge.mida ; i += 100){
+                            //printf("TIREM LA IMATGE. COP %d AMB MIDA %d\n", i, imatge.mida);
+                            char imatgeTrossejada[100];
+                            memset(imatgeTrossejada, '\0', 100);
+                            //strncpy(imatgeTrossejada, imatge.imatge, 100);
+                            for(int k = 0; k < 100; k++){
+                                if( (i + k) >= imatge.mida ){
+                                    break;
+                                }
+                                imatgeTrossejada[k] = imatge.imatge[i + k];
+                            }
+
+                            comprovacio = enviaBytesImatge(socketW, imatgeTrossejada);
+                            if (comprovacio < 0){
+                                //Error i sortir
+                                write(1,IMATGE_ERROR,sizeof(IMATGE_ERROR));
+                                exit(ERROR_RETURN);
+                            }
+                        }
+                        //Llegim la resposta
+                        char serial[115];
+                        read(socketW, serial, 115);
+                        switch(serial[14]){
+                            case 'S':
+                                //Tot Correcte
+                                break;
+                            case 'R':
+                                //Error de dades
+                                write(1, IMATGE_ERROR, sizeof(IMATGE_ERROR));
+                                break;
+                            default:
+                                //Tot Correcte
+                                break;
+                        }
 
                     }
                 }

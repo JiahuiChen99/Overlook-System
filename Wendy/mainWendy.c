@@ -15,6 +15,7 @@
 #define NEW_CONNECTION "New Connection: "
 #define SEM_CREATE_ERROR "Error en crear el semàfor \n"
 #define ERR_OUT -1
+#define DISCONNECTION_WENDY "Disconnecting Wendy...\n"
 
 //Variables globals
 int generalSocketFD;
@@ -23,11 +24,18 @@ int *forkIDsClients;
 int forkCounter = 0;
 pid_t parent_pid;
 
+configJack config;
 
 void signalhandler(int sigint){
 
     switch (sigint) {
         case SIGINT:
+            free(forkIDsClients);
+
+            free (config.nom);
+            free (config.ipJack);
+
+            write(1, DISCONNECTION_WENDY, sizeof(DISCONNECTION_WENDY));
             break;
         default:
             break;
@@ -39,7 +47,6 @@ void signalhandler(int sigint){
 
 
 int main(int argc, char *argv[]) {
-    configJack config;
     int bytes;
     char buff[100];
 

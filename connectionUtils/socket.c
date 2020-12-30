@@ -561,36 +561,39 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
 
 //Wendy
 InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info){
-  char aux[35];
-  int arrCounter=0;
-  memset(aux, '\0', 35);
-  for (int i =0; i<100; i++){
-    switch (i) {
-      case 29:
-        strncpy(info.nom, aux, 30);
-        arrCounter = 0;
-        memset(aux, '\0', 35);
+    char aux[39];
+    memset(aux, '\0', 39);
+
+    printf("------ %s\n", dades);
+    int hashtagCounter = 0;
+    int k, j, i;
+    i = k = j = 0;
+
+    do{
+        if(dades[i] == '#'){
+            hashtagCounter++;
+        }
+
+        if(hashtagCounter == 0){
+            info.nom[i] = dades[i];
+        }
+
+        if(hashtagCounter == 1 && dades[i] != '#'){
+            aux[k] = dades[i];
+            k++;
+        }
+
+        if(hashtagCounter == 2 && dades[i] != '#'){
+            info.md5[j] = dades[i];
+            j++;
+        }
+
         i++;
-      break;
-      case 65:
-        info.mida = atoi(aux);
-        arrCounter = 0;
-        memset(aux, '\0', 35);
-        i++;
-      break;
-      case 98:
-        strncpy(info.md5, aux, 30);
-        arrCounter = 0;
-        memset(aux, '\0', 35);
-        i++;
-      break;
-      default:
-      aux[arrCounter] = dades[i];
-      arrCounter++;
-      break;
-    }
-  }
-  return info;
+    }while(i < 100);
+
+    info.mida = atoi(aux);
+
+    return info;
 }
 
 InfoImatge llegirTramaInicial(int fd){
@@ -606,9 +609,9 @@ InfoImatge llegirTramaInicial(int fd){
 
 
     //Inicialització de la info
-    memset(info.nom, '\0', sizeof(tramaRebuda.origen));
+    memset(info.nom, '\0', 30);
     info.mida = 0;
-    memset(info.md5, '\0', sizeof(tramaRebuda.dades));
+    memset(info.md5, '\0', 33);
 
     memset(serial, '\0', sizeof(serial));
 
@@ -677,128 +680,131 @@ int enviaBytesImatge(int fd, char * dades){
 }
 
 char * repBytesImatge(int fd, int mida){
-  char serial[155];
-  osPacket fragment;
-  char * imatge = (char *) malloc(sizeof(char)*101);
-  int bytesLlegits = 0;
-  memset(imatge, '\0', 101);
+    char serial[115];
+    osPacket fragment;
+    char * imatge = (char *) malloc(sizeof(char)*100);
+    int bytesLlegits = 0;
+    memset(imatge, '\0', 100);
 
-  int sortir = 0;
-  for(int i = 2;!sortir; i++){
-    int nBytes = read(fd, serial, 155);
+    int sortir = 0;
+    for(int i = 2;!sortir; i++){
+        int nBytes = read(fd, serial, 115);
 
-    if(nBytes <=0)
-      break;
+        if(nBytes <=0)
+            break;
 
-    //Inicialització del serial
-    memset(serial, '\0', sizeof(serial));
+        //Inicialització del serial
+        memset(serial, '\0', sizeof(serial));
 
 
-    /** Lectura de trama **/
-    //Lectura de l'origen
-    strncpy(fragment.origen, serial, 14);
-    write(1, fragment.origen, strlen(fragment.origen));
-    write(1, "\n", 1);
-    //Lectura tipus
-    fragment.tipus = serial[14];
-    //Lectura de dades
-    strncpy(fragment.dades, serial + 15, 100);
+        /** Lectura de trama **/
+        //Lectura de l'origen
+        strncpy(fragment.origen, serial, 14);
+        write(1, fragment.origen, strlen(fragment.origen));
+        write(1, "\n", 1);
+        //Lectura tipus
+        fragment.tipus = serial[14];
+        //Lectura de dades
+        strncpy(fragment.dades, serial + 15, 100);
 
-    strcat(imatge,fragment.dades);
-    imatge = (char *) realloc(imatge, sizeof(char)*(100*i)+1);
-    imatge[(100*i)+1] = '\0';
-    bytesLlegits+=100;
-    if (bytesLlegits >= mida)
-        sortir = 1;
+        strcat(imatge,fragment.dades);
+        imatge = (char *) realloc(imatge, sizeof(char)*(100*i));
+        //imatge[(100*i)+1] = '\0';
+        bytesLlegits+=100;
+        if (bytesLlegits >= mida)
+            sortir = 1;
+    }
 
-  }
-
-  return(imatge);
+    return(imatge);
 }
 
 int enviaSuccess(int fd){
 
-  char serial[115];
-  memset(serial, '\0', sizeof(serial));
+    char serial[115];
+    memset(serial, '\0', sizeof(serial));
 
-  //Inicialització de la trama
-  osPacket message;
-  memset(message.origen, '\0', sizeof(message.origen));
-  message.tipus = '\0';
-  memset(message.dades, '\0', sizeof(message.dades));
+    //Inicialització de la trama
+    osPacket message;
+    memset(message.origen, '\0', sizeof(message.origen));
+    message.tipus = '\0';
+    memset(message.dades, '\0', sizeof(message.dades));
 
-  // enviar nom estació
-  strcpy(message.origen, "WENDY");
+    // enviar nom estació
+    strcpy(message.origen, "WENDY");
 
-  //Serialitzar
-  memcpy(serial, message.origen, sizeof(message.origen));
-  serial[14] =  'S';
+    //Serialitzar
+    memcpy(serial, message.origen, sizeof(message.origen));
+    serial[14] =  'S';
 
-  dadesMeteorologiquesSerializer(serial, "IMATGE OK");
+    dadesMeteorologiquesSerializer(serial, "IMATGE OK");
 
-  //enviem
-  write(fd, serial, 115);
+    //enviem
+    write(fd, serial, 115);
 
-  return 0;
+    return 0;
 
 }
 
 int enviaError(int fd){
-  char serial[115];
-  memset(serial, '\0', sizeof(serial));
+    char serial[115];
+    memset(serial, '\0', sizeof(serial));
 
-  //Inicialització de la trama
-  osPacket message;
-  memset(message.origen, '\0', sizeof(message.origen));
-  message.tipus = '\0';
-  memset(message.dades, '\0', sizeof(message.dades));
+    //Inicialització de la trama
+    osPacket message;
+    memset(message.origen, '\0', sizeof(message.origen));
+    message.tipus = '\0';
+    memset(message.dades, '\0', sizeof(message.dades));
 
-  // enviar nom estació
-  strcpy(message.origen, "WENDY");
+    // enviar nom estació
+    strcpy(message.origen, "WENDY");
 
-  //Serialitzar
-  memcpy(serial, message.origen, sizeof(message.origen));
-  serial[14] =  'R';
+    //Serialitzar
+    memcpy(serial, message.origen, sizeof(message.origen));
+    serial[14] =  'R';
 
-  dadesMeteorologiquesSerializer(serial, "IMATGE KO");
+    dadesMeteorologiquesSerializer(serial, "IMATGE KO");
 
-  //enviem
-  write(fd, serial, 115);
-  return 0;
+    //enviem
+    write(fd, serial, 115);
+    return 0;
 }
 
 int comprovaMD5(InfoImatge info){
 
-  char * md5nou = NULL;
-  md5nou = getMD5(info.nom, md5nou);
+    char * md5nou = NULL;
+    md5nou = getMD5(info.nom, md5nou);
 
-  if(strcmp(md5nou, info.md5) != 0){
-    return -1;
-  }
+    if(strcmp(md5nou, info.md5) != 0){
+        return -1;
+    }
 
-  return 0;
+    return 0;
 }
 
 int gestionarClientWendy(int socketTemp){
-  while(1){
-    char * imatge;
-    InfoImatge info = llegirTramaInicial(socketTemp);
-    printf("EL NOM ES: %s\n", info.nom);
-    imatge = repBytesImatge(socketTemp, info.mida);
+    while(1){
+        char * imatge;
+        InfoImatge info = llegirTramaInicial(socketTemp);
+        /*printf("EL NOM ES: %s\n", info.nom);
+        printf("EL MIDA ES: %d\n", info.mida);
+        write(1, info.md5, strlen(info.md5));
+        printf("\n");*/
 
-    //Escriure al fitxer de la imatge
-    int fitxer = open(info.nom, O_CREAT | O_RDWR);
+        imatge = repBytesImatge(socketTemp, info.mida);
 
-    write(fitxer, imatge, info.mida);
+        //Escriure al fitxer de la imatge
+        int fitxer = open(info.nom, O_CREAT | O_RDWR, 0666);
 
-    //Agafar i Comprovar el md5sum
-    int esCorrecte = comprovaMD5(info);
+        write(fitxer, imatge, info.mida);
 
-    if (!esCorrecte){
-      enviaError(socketTemp);
-    }else{
-      enviaSuccess(socketTemp);
+        //Agafar i Comprovar el md5sum
+        int esCorrecte = comprovaMD5(info);
+
+        if (!esCorrecte){
+            enviaError(socketTemp);
+        }else{
+            enviaSuccess(socketTemp);
+        }
     }
-  }
 
 }

@@ -15,6 +15,7 @@
 #define START "Starting Danny...\n"
 #define DISCONNECTION "Disconnecting Danny...\n"
 #define DISCONNECTION_JACK "Disconnecting Jack...\n"
+#define DISCONNECTION_WENDY "Disconnecting Wendy...\n"
 
 //Variables globals
 configDanny config;
@@ -46,6 +47,7 @@ void signalhandler(int sigint){
             break;
         case SIGPIPE:
 
+            //TODO: 2 casuístiques, si Wendy mor hem de matar Jack - si Jack mor hem de matar Wendy
             close(fdsocket);
             shutdown(fdsocket, 2);
 
@@ -56,6 +58,7 @@ void signalhandler(int sigint){
 
             write(1, DISCONNECTION_JACK, sizeof(DISCONNECTION_JACK));
             write(1, DISCONNECTION, sizeof(DISCONNECTION));
+            write(1, DISCONNECTION_WENDY, sizeof(DISCONNECTION_WENDY));
 
             exit(0);
             break;
