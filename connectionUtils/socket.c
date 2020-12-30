@@ -551,11 +551,11 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
     //enviem
     write(fd, serial, 115);
 
-    read(fd, serial, 115);
+    //read(fd, serial, 115);
 
-    if (serial[14] == 'E') {
-        return 1;
-    }
+    //if (serial[14] == 'E') {
+    //    return 1;
+    //}
     return 0;
 }
 
