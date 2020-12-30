@@ -1,4 +1,4 @@
-.PHONY : clean.PHONY : clean
+.PHONY : clean
 
 OBJS	= mainJack.o fileParser.o socket.o semaphore_v2.o imatgeUtils.o lloyd.o
 SOURCE	= mainJack.c ../fileParser.c ../connectionUtils/socket.c ../semaphore_v2.c ../ImatgeUtils/imatgeUtils.c ../Lloyd/lloyd.c
@@ -28,7 +28,7 @@ socket.o: ../connectionUtils/socket.c
 	$(CC) $(FLAGS) ../connectionUtils/socket.c
 
 lloyd.o: ../Lloyd/lloyd.c
-		$(CC) $(FLAGS) ../Lloyd/lloyd.c
+	$(CC) $(FLAGS) ../Lloyd/lloyd.c
 
 
 
