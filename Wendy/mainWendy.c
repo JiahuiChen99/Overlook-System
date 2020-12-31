@@ -87,7 +87,6 @@ int main(int argc, char *argv[]) {
         write(1, "Waiting...\n", sizeof("Waiting...\n"));
 
         socketTemp = acceptarConnexio(generalSocketFD);
-        printf("-- %d\n", socketTemp);
         if (socketTemp < 0){
             bytes = sprintf(buff, ACCEPT_ERROR);
             write(1, buff, bytes);

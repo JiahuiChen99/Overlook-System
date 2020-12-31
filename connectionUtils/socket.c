@@ -709,6 +709,9 @@ char * repBytesImatge(int fd, int mida){
             fragment.dades[k - 15] = serial[k];
         }
 
+        /*write(1, fragment.dades, 100);
+        write(1, "\n", 1);*/
+
         for(int k = 0; k < 100; k++){
             imatge[bytesCounter] = fragment.dades[k];
             bytesCounter++;
@@ -796,25 +799,28 @@ int gestionarClientWendy(int socketTemp){
         int esCorrecte;
 
         if (strcmp(info.nom, "ERROR") != 0){
-          imatge = repBytesImatge(socketTemp, info.mida);
+            imatge = repBytesImatge(socketTemp, info.mida);
 
-        //Escriure al fitxer de la imatge
-        int fitxer = open(info.nom, O_CREAT | O_RDWR, 0666);
+            //Escriure al fitxer de la imatge
+            int fitxer = open(info.nom, O_CREAT | O_RDWR, 0666);
 
-        write(fitxer, imatge, info.mida);
-        close(fitxer);
+            write(fitxer, imatge, info.mida);
+            close(fitxer);
+            free(imatge);
 
-          //Agafar i Comprovar el md5sum
-          esCorrecte = comprovaMD5(info);
+            //Agafar i Comprovar el md5sum
+            esCorrecte = comprovaMD5(info);
         }else{
-          esCorrecte=-1
+            esCorrecte=-1;
         }
 
         if (esCorrecte == -1){
-            //sleep(2);
-            //tcflush(socketTemp, TCIFLUSH);
+            /*sleep(2);
+            tcflush(socketTemp, TCIFLUSH);*/
+            printf("Wendy NO ha replicat correctament la foto\n");
             enviaError(socketTemp);
         }else{
+            printf("Wendy ha replicat correctament la foto\n");
             enviaSuccess(socketTemp);
         }
     }

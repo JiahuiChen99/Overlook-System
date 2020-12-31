@@ -172,10 +172,10 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         MidaImatge imatge = llegirImatge(fdImatge);
 
 
-                        /*int fitxer = open("copia.jpg", O_CREAT | O_RDWR, 0666);
+                        int fitxer = open("copia.jpg", O_CREAT | O_RDWR, 0666);
 
                         write(fitxer, imatge.imatge, imatge.mida);
-                        close(fitxer);*/
+                        close(fitxer);
 
 
                         char out[100];
@@ -205,18 +205,27 @@ int fileDetection(configDanny *config, int socket, int socketW){
 
                             comprovacio = enviaBytesImatge(socketW, imatgeTrossejada);
 
+                            /*write(1, imatgeTrossejada, 100);
+                            write(1, "\n", 1);
+                            sleep(5);*/
+
                             if (comprovacio < 0){
                                 //Error i sortir
                                 write(1,IMATGE_ERROR,sizeof(IMATGE_ERROR));
                                 exit(ERROR_RETURN);
                             }
                         }
+
+                        //Alliberar memòria de la foto
+                        free(imatge.imatge);
+
                         //Llegim la resposta
                         char serial[115];
                         read(socketW, serial, 115);
                         switch(serial[14]){
                             case 'S':
                                 //Tot Correcte
+                                printf("WENDY HA REBUT LA IMATGE\n");
                                 break;
                             case 'R':
                                 //Error de dades
