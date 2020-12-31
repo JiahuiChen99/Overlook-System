@@ -6,20 +6,30 @@ MidaImatge llegirImatge(int fd){
     char buff[100];
     int lletres = 0;
     int comprovacio;
+    int counterBytes = 0;
     while (1){
+        memset(buff, '\0', 100);
         comprovacio = read(fd, &buff, 100);
         lletres+=comprovacio;
         if((comprovacio < 100)){
             //lletres+=+1;
             info.imatge = (char *) realloc(info.imatge, sizeof(char)*(lletres));
-            strcat(info.imatge, buff);
+            //strcat(info.imatge, buff);
+            for(int i = 0; i < 100; i++){
+                info.imatge[counterBytes] = buff[i];
+                counterBytes++;
+            }
             //info.imatge[lletres-1] = '\0';
             info.mida = lletres;
             return(info);
         }else{
             //lletres++;
             info.imatge = (char *) realloc(info.imatge, sizeof(char)*lletres);
-            strcat(info.imatge, buff);
+            //strcat(info.imatge, buff);
+            for(int i = 0; i < 100; i++){
+                info.imatge[counterBytes] = buff[i];
+                counterBytes++;
+            }
         }
     }
 }
