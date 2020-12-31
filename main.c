@@ -59,7 +59,9 @@ void signalhandler(int sigint){
             free (config.ipWendy);
 
             write(1, DISCONNECTION_JACK, sizeof(DISCONNECTION_JACK));
+            kill(pidJack, SIGINT);
             write(1, DISCONNECTION, sizeof(DISCONNECTION));
+            kill(pidWendy, SIGINT);
             write(1, DISCONNECTION_WENDY, sizeof(DISCONNECTION_WENDY));
 
             exit(0);
