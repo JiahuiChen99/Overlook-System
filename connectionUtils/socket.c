@@ -793,8 +793,10 @@ int gestionarClientWendy(int socketTemp){
     while(1){
         char * imatge;
         InfoImatge info = llegirTramaInicial(socketTemp);
+        int esCorrecte;
 
-        imatge = repBytesImatge(socketTemp, info.mida);
+        if (strcmp(info.nom, "ERROR") != 0){
+          imatge = repBytesImatge(socketTemp, info.mida);
 
         //Escriure al fitxer de la imatge
         int fitxer = open(info.nom, O_CREAT | O_RDWR, 0666);
@@ -802,10 +804,15 @@ int gestionarClientWendy(int socketTemp){
         write(fitxer, imatge, info.mida);
         close(fitxer);
 
-        //Agafar i Comprovar el md5sum
-        int esCorrecte = comprovaMD5(info);
+          //Agafar i Comprovar el md5sum
+          esCorrecte = comprovaMD5(info);
+        }else{
+          esCorrecte=-1
+        }
 
         if (esCorrecte == -1){
+            //sleep(2);
+            //tcflush(socketTemp, TCIFLUSH);
             enviaError(socketTemp);
         }else{
             enviaSuccess(socketTemp);
