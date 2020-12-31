@@ -15,7 +15,7 @@ MidaImatge llegirImatge(int fd){
             //lletres+=+1;
             info.imatge = (char *) realloc(info.imatge, sizeof(char)*(lletres));
             //strcat(info.imatge, buff);
-            for(int i = 0; i < 100; i++){
+            for(int i = 0; i < comprovacio; i++){
                 info.imatge[counterBytes] = buff[i];
                 counterBytes++;
             }
@@ -26,7 +26,7 @@ MidaImatge llegirImatge(int fd){
             //lletres++;
             info.imatge = (char *) realloc(info.imatge, sizeof(char)*lletres);
             //strcat(info.imatge, buff);
-            for(int i = 0; i < 100; i++){
+            for(int i = 0; i < comprovacio; i++){
                 info.imatge[counterBytes] = buff[i];
                 counterBytes++;
             }
