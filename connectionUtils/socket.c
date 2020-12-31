@@ -711,7 +711,12 @@ char * repBytesImatge(int fd, int mida){
         //Lectura tipus
         fragment.tipus = serial[14];
         //Lectura de dades
-        strncpy(fragment.dades, serial + 15, 100);
+        //strncpy(fragment.dades, serial + 15, 100);
+        for(int k = 15; k < 115; k++){
+            fragment.dades[k - 15] = serial[k];
+            //bytesCounter++;
+        }
+
         write(1, fragment.dades, 100);
         write(1, "\n", 1);
 
