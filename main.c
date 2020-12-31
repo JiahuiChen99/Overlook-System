@@ -1,4 +1,4 @@
-#include <stdio.h>
+  #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +21,8 @@
 configDanny config;
 int fdsocket;
 int socketW;
+int pidJack;
+int pidWendy;
 
 void signalhandler(int sigint){
 
@@ -98,7 +100,7 @@ int main(int argc, char *argv[]) {
 
     //Iniciem la conexió amb el servidor Jack
     fdsocket = iniciarclient(config.ipJack, config.portJack);
-    protocolconnexioClient(fdsocket, config.nom);
+    pidJack = protocolconnexioClient(fdsocket, config.nom);
     if(fdsocket < -1){
         //Display error i sortir
         return -1;
@@ -106,7 +108,7 @@ int main(int argc, char *argv[]) {
 
     //Iniciem la conexió amb el servidor Wendy
     socketW = iniciarclient(config.ipWendy, config.portWendy);
-    protocolconnexioClient(socketW, config.nom);
+    pidWendy = protocolconnexioClient(socketW, config.nom);
     if(socketW < -1){
         //Display error i sortir
         return -1;

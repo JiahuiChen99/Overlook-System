@@ -443,6 +443,11 @@ int protocolconnexioClient(int fd, char * nom){
 
     if (serial[14] == 'E') {
         return 1;
+    }else{
+      char buff[100];
+      memset(buff, '\0', 100);
+      strncpy(buff, serial+15, 100);
+      return (atoi(buff));
     }
     return 0;
 }
@@ -477,8 +482,13 @@ char * protocolconnexioServidor(int fd){
     if ((strcmp("DANNY", tramaRebuda.origen)==0)&&(tramaRebuda.tipus == 'C')){
         tamany = sizeof("JACK");
         strncpy(tramaResposta.origen, "JACK", tamany);
-        tamany = sizeof("CONNEXIO OK");
-        strncpy(tramaResposta.dades, "CONNEXIO OK", tamany);
+        int pidpare = getppid();
+        char buff[100];
+        memset(buff, '\0', 100);
+        tamany = sprintf(buff, "%d", pidpare);
+        //tamany = sizeof("CONNEXIO OK");
+        //strncpy(tramaResposta.dades, "CONNEXIO OK", tamany);
+        strncpy(tramaResposta.dades, buff, tamany);
         memset(serial, '\0', sizeof(serial));
         tamany = sizeof(tramaResposta.origen);
         strncpy(serial, tramaResposta.origen, tamany);
