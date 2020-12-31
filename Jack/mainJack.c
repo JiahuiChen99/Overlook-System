@@ -98,10 +98,16 @@ void signalhandler(int sigint){
         case SIGINT:
             //La interrupció es propaga a tots els fills
             if(parent_pid == getpid()){
+                for (int i = 0; i < forkCounter; i++) {
+                    kill(forkIDsClients[i], SIGUSR1);
+                }
+
+                kill(lloydID, SIGINT);
                 free(forkIDsClients);
                 close(generalSocketFD);
                 shutdown(generalSocketFD, 2);
             }else{
+                free(forkIDsClients);
                 close(socketTemp);
                 shutdown(socketTemp, 2);
             }
@@ -112,6 +118,12 @@ void signalhandler(int sigint){
             shmdt((*memComp).nomEstacio);
             shmdt(memComp);
 
+            exit(0);
+            break;
+        case SIGUSR1: //Alliberar recursos de cada fill
+            free(forkIDsClients);
+            close(socketTemp);
+            shutdown(socketTemp, 2);
             exit(0);
             break;
         default:
@@ -150,8 +162,6 @@ int main(int argc, char *argv[]) {
     //Iniciem el servidor
     generalSocketFD = iniciarServidor(config.ipJack, config.portJack);
 
-    forkIDsClients = (int *) malloc(sizeof(int));
-
     //Reassingem interrupcions
     signal(SIGINT, signalhandler);
 
@@ -185,7 +195,7 @@ int main(int argc, char *argv[]) {
             return 0;
             break;
         default:  //Pare
-
+            forkIDsClients = (int *) malloc(sizeof(int));
             //Esperem a rebre connexions
             while(1){
                 write(1, "$Jack:\n", sizeof("$Jack:\n"));

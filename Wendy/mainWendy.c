@@ -1,10 +1,12 @@
 #define _POSIX_SOURCE
+
 #include <pthread.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/shm.h>
+#include <features.h>
 
 #include "../connectionUtils/socket.h"
 #include "../fileParser.h"
@@ -36,6 +38,7 @@ void signalhandler(int sigint){
             free (config.ipJack);
 
             write(1, DISCONNECTION_WENDY, sizeof(DISCONNECTION_WENDY));
+            exit(0);
             break;
         default:
             break;
@@ -84,6 +87,7 @@ int main(int argc, char *argv[]) {
         write(1, "Waiting...\n", sizeof("Waiting...\n"));
 
         socketTemp = acceptarConnexio(generalSocketFD);
+        printf("-- %d\n", socketTemp);
         if (socketTemp < 0){
             bytes = sprintf(buff, ACCEPT_ERROR);
             write(1, buff, bytes);

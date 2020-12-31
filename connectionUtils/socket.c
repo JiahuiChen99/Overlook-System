@@ -49,9 +49,6 @@ int llegirDadesClient(int socketFD, Sincronitzacio sincron, semaphore semFills, 
         //Lectura de dades
         strncpy(dadesMeteorologiques.dades, trama + 15, 100);
 
-        /*char buffer[20];
-        int bytes = sprintf(buffer, "%s\n%c", nomclient, '\0');
-        write(1,buffer,bytes);*/
         int dadesStatus = parseigDadesDanny(dadesMeteorologiques, sincron, semFills, memComp);
 
         if(dadesStatus == ERROR_DADES_DANNY){
@@ -444,11 +441,12 @@ int protocolconnexioClient(int fd, char * nom){
     if (serial[14] == 'E') {
         return 1;
     }else{
-      char buff[100];
-      memset(buff, '\0', 100);
-      strncpy(buff, serial+15, 100);
-      return (atoi(buff));
+        char buff[100];
+        memset(buff, '\0', 100);
+        strncpy(buff, serial+15, 100);
+        return (atoi(buff));
     }
+
     return 0;
 }
 
@@ -556,15 +554,9 @@ int tramaInicialWendy(int fd, char * nom, int mida, char * md5sum){
     strcat(buff, md5sum);
     dadesMeteorologiquesSerializer(serial, buff);
 
-    printf("MD5: %s\n", md5sum);
     //enviem
     write(fd, serial, 115);
 
-    //read(fd, serial, 115);
-
-    //if (serial[14] == 'E') {
-    //    return 1;
-    //}
     return 0;
 }
 
@@ -573,7 +565,6 @@ InfoImatge parseigTramaInicialWendy(char * dades, InfoImatge info){
     char aux[39];
     memset(aux, '\0', 39);
 
-    printf("------ %s\n", dades);
     int hashtagCounter = 0;
     int k, j, i;
     i = k = j = 0;
@@ -685,8 +676,6 @@ int enviaBytesImatge(int fd, char * dades){
     //enviem
     write(fd, serial, 115);
 
-    //printf("Enviat %d bytes\n", bytesEnviats);
-
     return 0;
 }
 
@@ -697,18 +686,14 @@ char * repBytesImatge(int fd, int mida){
     char * imatge = (char *) malloc(sizeof(char)*100);
     int bytesLlegits = 0;
     memset(imatge, '\0', 100);
-
-    int tramesCounter = 1;
     int sortir = 0;
 
-    printf("MIDA IMATGE: %d\n", mida);
 
     for(int i = 2;!sortir; i++){
         //Inicialització del serial
         memset(serial, '\0', sizeof(serial));
 
         int nBytes = read(fd, serial, 115);
-        //printf("Enviat %d bytes\n", nBytes);
 
         if(nBytes <=0)
             break;
@@ -716,31 +701,19 @@ char * repBytesImatge(int fd, int mida){
         /** Lectura de trama **/
         //Lectura de l'origen
         strncpy(fragment.origen, serial, 14);
-        /*write(1, fragment.origen, strlen(fragment.origen));
-        write(1, "\n", 1);*/
         //Lectura tipus
         fragment.tipus = serial[14];
         //Lectura de dades
-        //strncpy(fragment.dades, serial + 15, 100);
+
         for(int k = 15; k < 115; k++){
             fragment.dades[k - 15] = serial[k];
-            //bytesCounter++;
         }
-
-        write(1, fragment.dades, 100);
-        write(1, "\n", 1);
-
-        //sleep(1);
 
         for(int k = 0; k < 100; k++){
             imatge[bytesCounter] = fragment.dades[k];
             bytesCounter++;
         }
 
-        //printf("%d\n", tramesCounter);
-
-
-        tramesCounter++;
 
         imatge = (char *) realloc(imatge, sizeof(char)*(100*i));
         //imatge[(100*i)+1] = '\0';
@@ -805,16 +778,11 @@ int enviaError(int fd){
 
 int comprovaMD5(InfoImatge info){
 
-    printf("Comprovant els 2 MD5\n");
     char * md5nou = NULL;
     char out[100];
     md5nou = getMD5(info.nom, out);
 
-    printf("L'antic MD5 %s\n", info.md5);
-    printf("El nou MD5 %s\n", md5nou);
-
     if(strcmp(md5nou, info.md5) != 0){
-        printf("No son iguals\n");
         return -1;
     }
 
@@ -825,10 +793,6 @@ int gestionarClientWendy(int socketTemp){
     while(1){
         char * imatge;
         InfoImatge info = llegirTramaInicial(socketTemp);
-        /*printf("EL NOM ES: %s\n", info.nom);
-        printf("EL MIDA ES: %d\n", info.mida);
-        write(1, info.md5, strlen(info.md5));
-        printf("\n");*/
 
         imatge = repBytesImatge(socketTemp, info.mida);
 
@@ -842,10 +806,8 @@ int gestionarClientWendy(int socketTemp){
         int esCorrecte = comprovaMD5(info);
 
         if (esCorrecte == -1){
-            printf("ERROR\n");
             enviaError(socketTemp);
         }else{
-            printf("OK\n");
             enviaSuccess(socketTemp);
         }
     }

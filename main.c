@@ -1,4 +1,5 @@
-  #include <stdio.h>
+#define _POSIX_SOURCE
+#include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>

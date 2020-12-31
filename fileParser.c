@@ -172,17 +172,17 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         MidaImatge imatge = llegirImatge(fdImatge);
 
 
-                        int fitxer = open("copia.jpg", O_CREAT | O_RDWR, 0666);
+                        /*int fitxer = open("copia.jpg", O_CREAT | O_RDWR, 0666);
 
                         write(fitxer, imatge.imatge, imatge.mida);
-                        close(fitxer);
+                        close(fitxer);*/
 
 
                         char out[100];
                         char * md5;
                         md5 = getMD5(fitxerActual, out);
                         //Enviem la trama inicial
-                        printf("TIREM LA TRAMA INICIAL\n");
+
                         comprovacio =tramaInicialWendy(socketW, directoryFile->d_name, imatge.mida, md5);
                         if (comprovacio < 0){
                             //Error i sortir
@@ -191,12 +191,8 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         }
 
 
-
-                        int tramesCounter = 1;
-                        printf("MIDA IMATGE: %d\n", imatge.mida);
                         //Enviem la imatge de 100 en 100 bytes cap a Wendy
                         for(int i = 0; i < imatge.mida ; i += 100){
-                            //printf("TIREM LA IMATGE. COP %d AMB MIDA %d\n", i, imatge.mida);
                             char imatgeTrossejada[100];
                             memset(imatgeTrossejada, '\0', 100);
                             //strncpy(imatgeTrossejada, imatge.imatge, 100);
@@ -207,14 +203,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
                                 imatgeTrossejada[k] = imatge.imatge[i + k];
                             }
 
-                            write(1, imatgeTrossejada, 100);
-                            write(1, "\n", 1);
-                            //sleep(1);
-
                             comprovacio = enviaBytesImatge(socketW, imatgeTrossejada);
-                            //printf("%d\n", tramesCounter);
-
-                            tramesCounter++;
 
                             if (comprovacio < 0){
                                 //Error i sortir
@@ -227,7 +216,6 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         read(socketW, serial, 115);
                         switch(serial[14]){
                             case 'S':
-                                printf("Wendy ha rebut la foto correctament\n");
                                 //Tot Correcte
                                 break;
                             case 'R':
