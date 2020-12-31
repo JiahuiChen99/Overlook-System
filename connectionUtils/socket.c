@@ -311,7 +311,6 @@ int enviarDadesClient(int socketFD, txtFile txtFile, configDanny *config){
 void dadesMeteorologiquesSerializer(char *serial, char *dades){
     int j = 15;
 
-    //for(int i = 0; i < strlen(dades); i++){
     for(int i = 0; i < 100; i++){
         serial[j] = dades[i];
         j++;
@@ -676,38 +675,58 @@ int enviaBytesImatge(int fd, char * dades){
     //enviem
     write(fd, serial, 115);
 
+    //printf("Enviat %d bytes\n", bytesEnviats);
+
     return 0;
 }
 
 char * repBytesImatge(int fd, int mida){
     char serial[115];
+    int bytesCounter = 0;
     osPacket fragment;
     char * imatge = (char *) malloc(sizeof(char)*100);
     int bytesLlegits = 0;
     memset(imatge, '\0', 100);
 
+    int tramesCounter = 1;
     int sortir = 0;
+
+    printf("MIDA IMATGE: %d\n", mida);
+
     for(int i = 2;!sortir; i++){
+        //Inicialització del serial
+        memset(serial, '\0', sizeof(serial));
+
         int nBytes = read(fd, serial, 115);
+        //printf("Enviat %d bytes\n", nBytes);
 
         if(nBytes <=0)
             break;
 
-        //Inicialització del serial
-        memset(serial, '\0', sizeof(serial));
-
-
         /** Lectura de trama **/
         //Lectura de l'origen
         strncpy(fragment.origen, serial, 14);
-        write(1, fragment.origen, strlen(fragment.origen));
-        write(1, "\n", 1);
+        /*write(1, fragment.origen, strlen(fragment.origen));
+        write(1, "\n", 1);*/
         //Lectura tipus
         fragment.tipus = serial[14];
         //Lectura de dades
         strncpy(fragment.dades, serial + 15, 100);
+        write(1, fragment.dades, 100);
+        write(1, "\n", 1);
 
-        strcat(imatge,fragment.dades);
+        //sleep(1);
+
+        for(int k = 0; k < 100; k++){
+            imatge[bytesCounter] = fragment.dades[k];
+            bytesCounter++;
+        }
+
+        //printf("%d\n", tramesCounter);
+
+
+        tramesCounter++;
+
         imatge = (char *) realloc(imatge, sizeof(char)*(100*i));
         //imatge[(100*i)+1] = '\0';
         bytesLlegits+=100;
@@ -771,10 +790,16 @@ int enviaError(int fd){
 
 int comprovaMD5(InfoImatge info){
 
+    printf("Comprovant els 2 MD5\n");
     char * md5nou = NULL;
-    md5nou = getMD5(info.nom, md5nou);
+    char out[100];
+    md5nou = getMD5(info.nom, out);
+
+    printf("L'antic MD5 %s\n", info.md5);
+    printf("El nou MD5 %s\n", md5nou);
 
     if(strcmp(md5nou, info.md5) != 0){
+        printf("No son iguals\n");
         return -1;
     }
 
@@ -796,13 +821,16 @@ int gestionarClientWendy(int socketTemp){
         int fitxer = open(info.nom, O_CREAT | O_RDWR, 0666);
 
         write(fitxer, imatge, info.mida);
+        close(fitxer);
 
         //Agafar i Comprovar el md5sum
         int esCorrecte = comprovaMD5(info);
 
-        if (!esCorrecte){
+        if (esCorrecte == -1){
+            printf("ERROR\n");
             enviaError(socketTemp);
         }else{
+            printf("OK\n");
             enviaSuccess(socketTemp);
         }
     }
