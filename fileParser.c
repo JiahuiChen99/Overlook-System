@@ -157,7 +157,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         strcpy(fitxerActual, buff);
                         strcat(fitxerActual,directoryFile->d_name);
 
-                        int fdImatge = open(fitxerActual, O_RDONLY);
+                        int fdImatge = open(fitxerActual, O_RDONLY | O_BINARY, 0 );
 
                         //Comprovem que el fitxer existeixi
                         if(fdImatge < 0){
@@ -170,6 +170,14 @@ int fileDetection(configDanny *config, int socket, int socketW){
 
                         //JPG Parsing
                         MidaImatge imatge = llegirImatge(fdImatge);
+
+
+                        int fitxer = open("copia.jpg", O_CREAT | O_RDWR, 0666);
+
+                        write(fitxer, imatge.imatge, imatge.mida);
+                        close(fitxer);
+
+
                         char out[100];
                         char * md5;
                         md5 = getMD5(fitxerActual, out);
@@ -181,6 +189,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
                             write(1,TRAMA_INICIAL_ERROR,sizeof(TRAMA_INICIAL_ERROR));
                             exit(ERROR_RETURN);
                         }
+
 
 
                         int tramesCounter = 1;
