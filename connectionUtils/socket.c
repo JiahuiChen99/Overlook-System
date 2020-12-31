@@ -825,23 +825,26 @@ int gestionarClientWendy(int socketTemp){
     while(1){
         char * imatge;
         InfoImatge info = llegirTramaInicial(socketTemp);
-        /*printf("EL NOM ES: %s\n", info.nom);
-        printf("EL MIDA ES: %d\n", info.mida);
-        write(1, info.md5, strlen(info.md5));
-        printf("\n");*/
+        int esCorrecte;
 
-        imatge = repBytesImatge(socketTemp, info.mida);
+        if (strcmp(info.nom, "ERROR") != 0){
+          imatge = repBytesImatge(socketTemp, info.mida);
 
-        //Escriure al fitxer de la imatge
-        int fitxer = open(info.nom, O_CREAT | O_RDWR, 0666);
+          //Escriure al fitxer de la imatge
+          int fitxer = open(info.nom, O_CREAT | O_RDWR, 0666);
 
-        write(fitxer, imatge, info.mida);
-        close(fitxer);
+          write(fitxer, imatge, info.mida);
+          close(fitxer);
 
-        //Agafar i Comprovar el md5sum
-        int esCorrecte = comprovaMD5(info);
+          //Agafar i Comprovar el md5sum
+          esCorrecte = comprovaMD5(info);
+        }else{
+          esCorrecte=-1
+        }
 
         if (esCorrecte == -1){
+            //sleep(2);
+            //tcflush(socketTemp, TCIFLUSH);
             printf("ERROR\n");
             enviaError(socketTemp);
         }else{
