@@ -28,7 +28,7 @@
 #define IMATGE_ERROR "Error en enviar bytes de la imatge a Wendy\n"
 
 
-int fileDetection(configDanny *config, int socket, int socketW);
+int fileDetection(configDanny *config, int socket, int socketW, int fdFitxer);
 char * llegirCadena(int fd);
 void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack);
 

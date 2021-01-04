@@ -94,7 +94,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         strcpy(fitxerActual, buff);
                         strcat(fitxerActual,directoryFile->d_name);
 
-                        int fdFitxer = open(fitxerActual, O_RDONLY);
+                        fdFitxer = open(fitxerActual, O_RDONLY);
 
                         //Comprovem que el fitxer existeixi
                         if(fdFitxer < 0){

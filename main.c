@@ -24,6 +24,7 @@ int fdsocket;
 int socketW;
 int pidJack;
 int pidWendy;
+int fdFitxer;
 
 void signalhandler(int sigint){
 
@@ -31,7 +32,7 @@ void signalhandler(int sigint){
 
         case SIGALRM:
             //Comprovar la carpeta i mirar si tenim arxius de text
-            fileDetection(&config, fdsocket, socketW);
+            fileDetection(&config, fdsocket, socketW, fdFitxer);
 
             break;
         case SIGINT:
