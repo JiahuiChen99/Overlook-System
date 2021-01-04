@@ -632,11 +632,17 @@ InfoImatge llegirTramaInicial(int fd){
     strncpy(tramaRebuda.dades, serial + 15, 100);
 
     if ((strcmp("DANNY", tramaRebuda.origen)==0)&&(tramaRebuda.tipus == 'I')){
+        write(1, tramaRebuda.origen, strlen(tramaRebuda.origen));
+        write(1, "\n", 1);
 
         info = parseigTramaInicialWendy(tramaRebuda.dades, info);
 
         return(info);
     }else{
+        if(serial[14] == 'Q'){
+            write(1, "Disconnecting Danny\n", sizeof("Disconnecting Danny\n"));
+            exit(0);
+        }
         tamany = sizeof("WENDY");
         strncpy(tramaResposta.origen, "WENDY", tamany);
         tamany = sizeof("ERROR");
@@ -780,10 +786,13 @@ int enviaError(int fd){
 }
 
 int comprovaMD5(InfoImatge info){
+    char imagePath[100];
+    memset(imagePath, '\0', 100);
 
+    sprintf(imagePath, "./images/%s", info.nom);
     char * md5nou = NULL;
     char out[100];
-    md5nou = getMD5(info.nom, out);
+    md5nou = getMD5(imagePath, out);
 
     if(strcmp(md5nou, info.md5) != 0){
         return -1;
@@ -793,16 +802,23 @@ int comprovaMD5(InfoImatge info){
 }
 
 int gestionarClientWendy(int socketTemp){
+    char imagePath[100];
+    char * imatge;
+    int esCorrecte;
+
     while(1){
-        char * imatge;
+        memset(imagePath, '\0', 100);
         InfoImatge info = llegirTramaInicial(socketTemp);
-        int esCorrecte;
 
         if (strcmp(info.nom, "ERROR") != 0){
             imatge = repBytesImatge(socketTemp, info.mida);
 
+            write(1, info.nom, strlen(info.nom));
+            write(1, "\n", 1);
+
             //Escriure al fitxer de la imatge
-            int fitxer = open(info.nom, O_CREAT | O_RDWR, 0666);
+            sprintf(imagePath, "./images/%s", info.nom);
+            int fitxer = open(imagePath, O_CREAT | O_RDWR, 0666);
 
             write(fitxer, imatge, info.mida);
             close(fitxer);
@@ -815,12 +831,10 @@ int gestionarClientWendy(int socketTemp){
         }
 
         if (esCorrecte == -1){
-            /*sleep(2);
-            tcflush(socketTemp, TCIFLUSH);*/
-            printf("Wendy NO ha replicat correctament la foto\n");
+            //printf("Wendy NO ha replicat correctament la foto\n");
             enviaError(socketTemp);
         }else{
-            printf("Wendy ha replicat correctament la foto\n");
+            //printf("Wendy ha replicat correctament la foto\n");
             enviaSuccess(socketTemp);
         }
     }

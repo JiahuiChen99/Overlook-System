@@ -1,5 +1,6 @@
 #ifndef OVERLOOK_SYSTEM_SOCKETS_H
 #define OVERLOOK_SYSTEM_SOCKETS_H
+#define _XOPEN_SOURCE_EXTENDED
 
 #include <sys/socket.h>
 #include <arpa/inet.h>

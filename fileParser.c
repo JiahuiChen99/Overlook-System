@@ -149,6 +149,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         close(fdFitxer);
 
                         remove(fitxerActual);
+                        free(fitxerActual);
 
                         free(txtFile.data);
                         free(txtFile.hora);
@@ -172,7 +173,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         MidaImatge imatge = llegirImatge(fdImatge);
 
 
-                        int fitxer = open("copia.jpg", O_CREAT | O_RDWR, 0666);
+                        int fitxer = open("./Wendy/images/copia.jpg", O_CREAT | O_RDWR, 0666);
 
                         write(fitxer, imatge.imatge, imatge.mida);
                         close(fitxer);
@@ -218,6 +219,8 @@ int fileDetection(configDanny *config, int socket, int socketW){
 
                         //Alliberar memòria de la foto
                         free(imatge.imatge);
+                        remove(fitxerActual);
+                        free(fitxerActual);
 
                         //Llegim la resposta
                         char serial[115];
@@ -235,7 +238,6 @@ int fileDetection(configDanny *config, int socket, int socketW){
                                 //Tot Correcte
                                 break;
                         }
-
                     }
                 }
             }

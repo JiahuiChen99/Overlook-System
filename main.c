@@ -51,7 +51,6 @@ void signalhandler(int sigint){
             break;
         case SIGPIPE:
 
-            //TODO: 2 casuístiques, si Wendy mor hem de matar Jack - si Jack mor hem de matar Wendy
             close(fdsocket);
             shutdown(fdsocket, 2);
 
