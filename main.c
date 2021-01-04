@@ -103,11 +103,11 @@ int main(int argc, char *argv[]) {
 
     //Iniciem la conexió amb el servidor Jack
     fdsocket = iniciarclient(config.ipJack, config.portJack);
-    pidJack = protocolconnexioClient(fdsocket, config.nom);
-    if(fdsocket < -1){
-        //Display error i sortir
-        return -1;
+    if(fdsocket < 0){
+        //Sortir
+        exit -1;
     }
+    pidJack = protocolconnexioClient(fdsocket, config.nom);
 
     //Iniciem la conexió amb el servidor Wendy
     socketW = iniciarclient(config.ipWendy, config.portWendy);
