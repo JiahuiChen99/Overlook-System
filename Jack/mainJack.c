@@ -106,6 +106,8 @@ void signalhandler(int sigint){
                 free(forkIDsClients);
                 close(generalSocketFD);
                 shutdown(generalSocketFD, 2);
+                close(socketTemp);
+                shutdown(socketTemp, 2);
             }else{
                 free(forkIDsClients);
                 close(socketTemp);
