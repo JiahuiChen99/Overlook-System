@@ -3,7 +3,7 @@
 
 
 
-int fileDetection(configDanny *config, int socket, int socketW){
+int fileDetection(configDanny *config, int socket, int socketW, int fdFitxer){
     DIR *directori;
     struct dirent *directoryFile;
     char buff2[500];
@@ -158,7 +158,7 @@ int fileDetection(configDanny *config, int socket, int socketW){
                         strcpy(fitxerActual, buff);
                         strcat(fitxerActual,directoryFile->d_name);
 
-                        int fdImatge = open(fitxerActual, O_RDONLY | O_BINARY, 0 );
+                        int fdImatge = open(fitxerActual, O_RDONLY, 0 );
 
                         //Comprovem que el fitxer existeixi
                         if(fdImatge < 0){

@@ -168,12 +168,20 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, signalhandler);
 
     //Agafem la memòria compartida
-    int s =crearMemoriaCompartida();
-    if (s < 0) {return ERR_OUT;}
+    int s = crearMemoriaCompartida();
+    if (s < 0) {
+        free(config.nom);
+        free(config.ipJack);
+        exit(ERR_OUT);
+    }
 
     //Inicialitzem semàfors
     s = crearSemafors();
-    if (s < 0) {return ERR_OUT;}
+    if (s < 0) {
+        free(config.nom);
+        free(config.ipJack);
+        exit(ERR_OUT);
+    }
 
     //Crear els recursos per comunicar-se amb Lloyd
     getMemoriaCompartida();

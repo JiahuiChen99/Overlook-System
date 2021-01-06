@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
     fdsocket = iniciarclient(config.ipJack, config.portJack);
     if(fdsocket < 0){
         //Sortir
-        exit -1;
+        exit(-1);
     }
     pidJack = protocolconnexioClient(fdsocket, config.nom);
 

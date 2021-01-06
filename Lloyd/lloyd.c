@@ -32,16 +32,16 @@ void signalhandlerLloyd(int signum){
                 write(out, estacions[i].nomEstacio, strlen(estacions[i].nomEstacio));
                 write(out, "\n", 1);
 
-                nBytes = sprintf(buff, "%.2f\n", estacions[i].temperatura);
+                nBytes = sprintf(buff, "%.1f\n", estacions[i].temperatura);
                 write(out, buff, nBytes);
 
                 nBytes = sprintf(buff, "%d\n", estacions[i].humitat);
                 write(out, buff, nBytes);
 
-                nBytes = sprintf(buff, "%.2f\n", estacions[i].pressio_atmosferica);
+                nBytes = sprintf(buff, "%.1f\n", estacions[i].pressio_atmosferica);
                 write(out, buff, nBytes);
 
-                nBytes = sprintf(buff, "%.2f\n", estacions[i].precipitacio);
+                nBytes = sprintf(buff, "%.1f\n", estacions[i].precipitacio);
                 write(out, buff, nBytes);
             }
 
@@ -91,6 +91,7 @@ void calculaMitjana(int estacio){
 }
 
 void guardaDadesMitjana(int estacio){
+    memset(infoAcumulada[estacio].nomEstacio, '\0', 101);
     strcpy(estacions[estacio].nomEstacio, memComp->nomEstacio);
     estacions[estacio].temperatura = memComp->temperatura;
     estacions[estacio].humitat = memComp->humitat;
@@ -99,6 +100,7 @@ void guardaDadesMitjana(int estacio){
 }
 
 void guardaDadesAcumulades(int estacio){
+    memset(infoAcumulada[estacio].nomEstacio, '\0', 101);
     strcpy(infoAcumulada[estacio].nomEstacio, memComp->nomEstacio);
     infoAcumulada[estacio].temperatura += memComp->temperatura;
     infoAcumulada[estacio].humitat += memComp->humitat;
@@ -112,6 +114,14 @@ void inicialitzaAcum(int index){
     infoAcumulada[index].humitat = 0;
     infoAcumulada[index].pressio_atmosferica = 0;
     infoAcumulada[index].precipitacio = 0;
+}
+
+void resetMemoriaCompartida(){
+    memset(memComp->nomEstacio, '\0', 101);
+    memComp->temperatura         = 0;
+    memComp->humitat             = 0;
+    memComp->pressio_atmosferica = 0;
+    memComp->precipitacio        = 0;
 }
 
 int crearMemoriaCompartida() {
@@ -199,7 +209,7 @@ int processaLloyd(){
             }else{
                 //Fer un guardat dades acumulades
                 numDades[estacio]++;
-                infoAcumulada = (infoLloyd *) realloc(infoAcumulada, sizeof(infoLloyd)*numDades[estacio]);
+                //infoAcumulada = (infoLloyd *) realloc(infoAcumulada, sizeof(infoLloyd)*numDades[estacio]);
                 guardaDadesAcumulades(estacio);
                 calculaMitjana(estacio);
             }
@@ -219,6 +229,10 @@ int processaLloyd(){
             guardaDadesAcumulades(numEstacions-1);
             guardaDadesMitjana(numEstacions-1);
         }
+
+
+        //Deixar l'espai net per la següent dada
+        resetMemoriaCompartida();
         SEM_signal(&(sincron.semJack2));
     }
 
