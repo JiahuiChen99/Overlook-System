@@ -228,7 +228,7 @@ int fileDetection(configDanny *config, int socket, int socketW, int fdFitxer){
                         switch(serial[14]){
                             case 'S':
                                 //Tot Correcte
-                                printf("WENDY HA REBUT LA IMATGE\n");
+                                write(1, "WENDY HA REBUT LA IMATGE\n", sizeof("WENDY HA REBUT LA IMATGE\n"));
                                 break;
                             case 'R':
                                 //Error de dades

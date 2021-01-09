@@ -831,10 +831,8 @@ int gestionarClientWendy(int socketTemp){
         }
 
         if (esCorrecte == -1){
-            //printf("Wendy NO ha replicat correctament la foto\n");
             enviaError(socketTemp);
         }else{
-            //printf("Wendy ha replicat correctament la foto\n");
             enviaSuccess(socketTemp);
         }
     }

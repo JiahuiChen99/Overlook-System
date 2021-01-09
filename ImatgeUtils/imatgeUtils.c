@@ -12,20 +12,18 @@ MidaImatge llegirImatge(int fd){
         comprovacio = read(fd, &buff, 100);
         lletres+=comprovacio;
         if((comprovacio < 100)){
-            //lletres+=+1;
             info.imatge = (char *) realloc(info.imatge, sizeof(char)*(lletres));
-            //strcat(info.imatge, buff);
+
             for(int i = 0; i < comprovacio; i++){
                 info.imatge[counterBytes] = buff[i];
                 counterBytes++;
             }
-            //info.imatge[lletres-1] = '\0';
+
             info.mida = lletres;
             return(info);
         }else{
-            //lletres++;
             info.imatge = (char *) realloc(info.imatge, sizeof(char)*lletres);
-            //strcat(info.imatge, buff);
+
             for(int i = 0; i < comprovacio; i++){
                 info.imatge[counterBytes] = buff[i];
                 counterBytes++;
