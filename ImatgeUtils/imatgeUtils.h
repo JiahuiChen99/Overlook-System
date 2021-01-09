@@ -12,7 +12,24 @@
 
 #include "../structs.h"
 
+/*
+*Llegim una imatge
+*
+*Params:
+*   -fd: File Descriptor de la imatge a llegir
+*
+*Returns: MidaImatge
+*/
 MidaImatge llegirImatge(int fd);
+
+/*
+*Obtenim el MD5 de una imatge
+*
+*Params:
+*   -fd: File Descriptor de fitxer a llegir
+*
+*Returns: --
+*/
 char * getMD5(char * nomArxiu, char * out);
 
 #endif

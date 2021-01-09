@@ -18,8 +18,34 @@
 #include "../semaphore_v2.h"
 #include "../structs.h"
 
+/*
+*Funció principal de funcionament de Lloyd
+*
+*Params:
+*   -fd: File Descriptor de fitxer a llegir
+*
+*Returns: --
+*/
 int processaLloyd();
+
+/*
+*Es crea la memòria compartida Jack<->Lloyd
+*
+*Params:
+*   -fd: File Descriptor de fitxer a llegir
+*
+*Returns: --
+*/
 int crearMemoriaCompartida();
+
+/*
+*Es creen els semàfors Jack <-> Lloyd
+*
+*Params:
+*   -fd: File Descriptor de fitxer a llegir
+*
+*Returns: --
+*/
 int crearSemafors();
 
 #endif
