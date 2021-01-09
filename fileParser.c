@@ -1,6 +1,9 @@
 #include "fileParser.h"
 
-int fileDetection(configDanny *config){
+
+
+
+int fileDetection(configDanny *config, int socket, int socketW, int fdFitxer){
     DIR *directori;
     struct dirent *directoryFile;
     char buff2[500];
@@ -8,6 +11,7 @@ int fileDetection(configDanny *config){
     int totalFilesMatching = 0;
     txtFile txtFile;
     memset(buff2, '\0', sizeof(buff2));
+    int comprovacio=0;
 
     int bytes =sprintf(buff2, "$%s:\n", config->nom);
     write(1, "\n", 1);
@@ -41,6 +45,7 @@ int fileDetection(configDanny *config){
             write(1, NO_FILES_FOUND, sizeof(NO_FILES_FOUND));
             return 0;
         }else{
+
             while ((directoryFile = readdir(directori)) != NULL){
                 //regex
                 if(strstr(directoryFile->d_name, ".txt") != NULL ||
@@ -55,6 +60,8 @@ int fileDetection(configDanny *config){
             bytes = sprintf(buff2, FILES_FOUND, totalFilesMatching);
             write(1, buff2, bytes);
 
+            //Close directori primer cop que l'obrim
+            closedir(directori);
             directori = opendir(buff);
 
             //Mostrar el nom de tots els arxius
@@ -87,7 +94,7 @@ int fileDetection(configDanny *config){
                         strcpy(fitxerActual, buff);
                         strcat(fitxerActual,directoryFile->d_name);
 
-                        int fdFitxer = open(fitxerActual, O_RDONLY);
+                        fdFitxer = open(fitxerActual, O_RDONLY);
 
                         //Comprovem que el fitxer existeixi
                         if(fdFitxer < 0){
@@ -96,6 +103,7 @@ int fileDetection(configDanny *config){
                             write(1, buff2, bytes);
                             exit(ERROR_RETURN);
                         }
+
 
                         char * aux;
                         txtFile.data = llegirCadena(fdFitxer);
@@ -135,24 +143,108 @@ int fileDetection(configDanny *config){
                         write(1, "\n", 1);
 
 
+                        enviarDadesClient(socket, txtFile, config);
 
                         //Alliberar memòria i eliminar fitxer
                         close(fdFitxer);
 
                         remove(fitxerActual);
+                        free(fitxerActual);
 
                         free(txtFile.data);
                         free(txtFile.hora);
                     }else{
-                        //TODO: JPG Parsing
-                    }
+                        char * fitxerActual = (char *) malloc(sizeof(char)*((strlen(buff)+strlen(directoryFile->d_name) + 1)));
+                        strcpy(fitxerActual, buff);
+                        strcat(fitxerActual,directoryFile->d_name);
 
+                        int fdImatge = open(fitxerActual, O_RDONLY, 0 );
+
+                        //Comprovem que el fitxer existeixi
+                        if(fdImatge < 0){
+                            memset(buff2, '\0', sizeof(buff2));
+                            bytes = sprintf(buff2, DATA_FILE_NOT_FOUND, directoryFile->d_name);
+                            write(1, buff2, bytes);
+                            exit(ERROR_RETURN);
+                        }
+
+
+                        //JPG Parsing
+                        MidaImatge imatge = llegirImatge(fdImatge);
+
+
+                        int fitxer = open("./Wendy/images/copia.jpg", O_CREAT | O_RDWR, 0666);
+
+                        write(fitxer, imatge.imatge, imatge.mida);
+                        close(fitxer);
+
+
+                        char out[100];
+                        char * md5;
+                        md5 = getMD5(fitxerActual, out);
+                        //Enviem la trama inicial
+
+                        comprovacio =tramaInicialWendy(socketW, directoryFile->d_name, imatge.mida, md5);
+                        if (comprovacio < 0){
+                            //Error i sortir
+                            write(1,TRAMA_INICIAL_ERROR,sizeof(TRAMA_INICIAL_ERROR));
+                            exit(ERROR_RETURN);
+                        }
+
+
+                        //Enviem la imatge de 100 en 100 bytes cap a Wendy
+                        for(int i = 0; i < imatge.mida ; i += 100){
+                            char imatgeTrossejada[100];
+                            memset(imatgeTrossejada, '\0', 100);
+                            //strncpy(imatgeTrossejada, imatge.imatge, 100);
+                            for(int k = 0; k < 100; k++){
+                                if( (i + k) >= imatge.mida ){
+                                    break;
+                                }
+                                imatgeTrossejada[k] = imatge.imatge[i + k];
+                            }
+
+                            comprovacio = enviaBytesImatge(socketW, imatgeTrossejada);
+
+                            /*write(1, imatgeTrossejada, 100);
+                            write(1, "\n", 1);
+                            sleep(5);*/
+
+                            if (comprovacio < 0){
+                                //Error i sortir
+                                write(1,IMATGE_ERROR,sizeof(IMATGE_ERROR));
+                                exit(ERROR_RETURN);
+                            }
+                        }
+
+                        //Alliberar memòria de la foto
+                        free(imatge.imatge);
+                        remove(fitxerActual);
+                        free(fitxerActual);
+
+                        //Llegim la resposta
+                        char serial[115];
+                        read(socketW, serial, 115);
+                        switch(serial[14]){
+                            case 'S':
+                                //Tot Correcte
+                                write(1, "WENDY HA REBUT LA IMATGE\n", sizeof("WENDY HA REBUT LA IMATGE\n"));
+                                break;
+                            case 'R':
+                                //Error de dades
+                                write(1, IMATGE_ERROR, sizeof(IMATGE_ERROR));
+                                break;
+                            default:
+                                //Tot Correcte
+                                break;
+                        }
+                    }
                 }
             }
         }
     }
     free(directoryFile);
-    free(directori);
+    closedir(directori);
     free(buff);
     return 0;
 }
@@ -194,9 +286,9 @@ char * llegirCadena(int fd){
 *
 *Retorna: Struct amb la informació llegida.
 */
-configDanny llegirConfig(char *nomFitxer){
+void llegirConfig(char *nomFitxer, char *process, struct configDanny *configDanny, struct configJack *configJack){
     int fitxer = open(nomFitxer, O_RDONLY);
-    configDanny config;
+    char * aux;
 
     //Comprovem que el fitxer existeixi
     if(fitxer < 0){
@@ -206,35 +298,43 @@ configDanny llegirConfig(char *nomFitxer){
         exit(ERROR_RETURN);
     }
 
-    //Llegim el nom de la estacio
-    config.nom = llegirCadena(fitxer);
 
-    //Llegim la carpeta on son els arxius
-    config.carpeta =  llegirCadena(fitxer);
-    //Llegim el temps
-    char * aux;
+    if(strcmp("Danny", process)==0){
+        //Llegim el nom de la estació
+        configDanny->nom = llegirCadena(fitxer);
+        //Llegim la carpeta on son els arxius
+        configDanny->carpeta =  llegirCadena(fitxer);
+        //Llegim el temps
+        aux = llegirCadena(fitxer);
+        configDanny->temps = atoi(aux);
+    }
 
-    aux = llegirCadena(fitxer);
-    config.temps = atoi(aux);
-    //free(aux);
+    /** Depenent de "a qui" li estiguem llegint la config ho guardem a configDanny o configJack **/
+    if(strcmp("Danny", process)==0){
+        configDanny->ipJack =  llegirCadena(fitxer);
 
-    //Llegim les dades de Jack
-    config.ipJack =  llegirCadena(fitxer);
+        aux = llegirCadena(fitxer);
+        configDanny->portJack= atoi(aux);
+    }else{
+        configJack->ipJack =  llegirCadena(fitxer);
 
-    aux = llegirCadena(fitxer);
-    config.portJack= atoi(aux);
-    //free(aux);
+        aux = llegirCadena(fitxer);
+        configJack->portJack= atoi(aux);
+    }
 
-    //Llegim les dades de Wendy
-    config.ipWendy =  llegirCadena(fitxer);
 
-    aux = llegirCadena(fitxer);
-    config.portWendy = atoi(aux);
+
+    if(strcmp("Danny", process)==0){
+        //Llegim les dades de Wendy
+        configDanny->ipWendy =  llegirCadena(fitxer);
+
+        aux = llegirCadena(fitxer);
+        configDanny->portWendy = atoi(aux);
+    }
+
     free(aux);
 
     //Tanquem el File Descriptor
     close(fitxer);
 
-
-    return(config);
 }

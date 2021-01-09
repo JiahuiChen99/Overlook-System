@@ -1,3 +1,4 @@
+#define _POSIX_SOURCE
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -10,12 +11,20 @@
 #include <fcntl.h>
 
 #include "fileParser.h"
+#include "./connectionUtils/socket.h"
 
 #define START "Starting Danny...\n"
 #define DISCONNECTION "Disconnecting Danny...\n"
+#define DISCONNECTION_JACK "Disconnecting Jack...\n"
+#define DISCONNECTION_WENDY "Disconnecting Wendy...\n"
 
 //Variables globals
 configDanny config;
+int fdsocket;
+int socketW;
+int pidJack;
+int pidWendy;
+int fdFitxer;
 
 void signalhandler(int sigint){
 
@@ -23,17 +32,39 @@ void signalhandler(int sigint){
 
         case SIGALRM:
             //Comprovar la carpeta i mirar si tenim arxius de text
-            fileDetection(&config);
+            fileDetection(&config, fdsocket, socketW, fdFitxer);
 
             break;
         case SIGINT:
+            //Avisar Jack
+            protocolDesconnexio(fdsocket, config.nom);
+            close(fdsocket);
+            shutdown(fdsocket, 2);
+
             free (config.nom);
             free (config.carpeta);
             free (config.ipJack);
             free (config.ipWendy);
 
-
             write(1, DISCONNECTION, sizeof(DISCONNECTION));
+            exit(0);
+            break;
+        case SIGPIPE:
+
+            close(fdsocket);
+            shutdown(fdsocket, 2);
+
+            free (config.nom);
+            free (config.carpeta);
+            free (config.ipJack);
+            free (config.ipWendy);
+
+            write(1, DISCONNECTION_JACK, sizeof(DISCONNECTION_JACK));
+            kill(pidJack, SIGINT);
+            write(1, DISCONNECTION, sizeof(DISCONNECTION));
+            kill(pidWendy, SIGINT);
+            write(1, DISCONNECTION_WENDY, sizeof(DISCONNECTION_WENDY));
+
             exit(0);
             break;
         default:
@@ -63,15 +94,34 @@ int main(int argc, char *argv[]) {
     config.ipWendy = NULL;
     config.portWendy = 0;
 
-    config = llegirConfig(argv[1]);
+    llegirConfig(argv[1], "Danny", &config, NULL);
 
     //Reassingem interrupcions
     signal(SIGALRM, signalhandler);
     signal(SIGINT, signalhandler);
+    signal(SIGPIPE, signalhandler);
+
+    //Iniciem la conexió amb el servidor Jack
+    fdsocket = iniciarclient(config.ipJack, config.portJack);
+    if(fdsocket < 0){
+        //Sortir
+        exit(-1);
+    }
+    pidJack = protocolconnexioClient(fdsocket, config.nom);
+
+    //Iniciem la conexió amb el servidor Wendy
+    socketW = iniciarclient(config.ipWendy, config.portWendy);
+    pidWendy = protocolconnexioClient(socketW, config.nom);
+    if(socketW < -1){
+        //Display error i sortir
+        return -1;
+    }
 
     while(1){
-        sleep(config.temps);
-        raise(SIGALRM);
+        /*sleep(config.temps);
+        raise(SIGALRM);*/
+        alarm(config.temps);
+        pause();
     }
 
     return 0;
